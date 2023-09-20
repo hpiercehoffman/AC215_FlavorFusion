@@ -1,0 +1,17 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[packages]
+google-cloud-storage = "*"
+jupyterlab = "*"
+pandas = "*"
+deep_translator = "*"
+google-api-python-client = "*"
+dvc = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"
