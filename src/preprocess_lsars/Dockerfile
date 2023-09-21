@@ -5,11 +5,11 @@ FROM python:3.9-slim-buster
 # This allows us to use "pipenv shell" as a container entry point.
 ENV PYENV_SHELL=/bin/bash
 
-# This line is not needed when using gcloud at command line, but we include this
-# for thoroughness
+# Authenticate via the flavor-fusion service account. If using 
+# gcloud CLI, these credentials are not needed.
 ENV GOOGLE_APPLICATION_CREDENTIALS=secrets/flavor-fusion.json
 
-# Ensure we have an up to date baseline, install dependencies 
+# Ensure we have an up to date baseline and install dependencies. 
 RUN set -ex; \
     apt-get update && \
     apt-get upgrade -y && \
