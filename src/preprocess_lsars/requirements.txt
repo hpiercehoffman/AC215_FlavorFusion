@@ -1,0 +1,6 @@
+google-cloud-storage
+jupyterlab
+pandas
+deep_translator
+google-api-python-client
+dvc

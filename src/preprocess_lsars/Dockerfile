@@ -21,9 +21,9 @@ RUN set -ex; \
 WORKDIR /app
 
 # Add Pipfile, Pipfile.lock
-ADD Pipfile Pipfile.lock /app/
+COPY Pipfile Pipfile.lock requirements.txt /app/
 
-RUN pipenv sync
+RUN pip install -r requirements.txt
 
 # Source code
 ADD . /app
