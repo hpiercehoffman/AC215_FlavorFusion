@@ -9,10 +9,14 @@ services:
         container_name: preprocess-lsars
         volumes:
             - ../secrets:/secrets
+        ports:
+            - 8888:8888
         environment:
             GOOGLE_APPLICATION_CREDENTIALS: /secrets/flavor-fusion-service.json
             GCP_PROJECT: "flavor-fusion"
             GCP_ZONE: "us-central1-a"
             GCS_BUCKET_NAME: "lsars-data"
-        ports:
-            - 4247:4247
+            environment:
+            JUPYTER_ENABLE_LAB: "yes"
+            JUPYTER_TOKEN: "docker"
+        

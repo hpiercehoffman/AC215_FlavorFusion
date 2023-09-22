@@ -44,5 +44,6 @@ ENV Path="${PATH}:/home/app/.local/lib/python3.9/site-packages"
 ENTRYPOINT ["/bin/bash"]
 
 # Get into the pipenv shell
-RUN pipenv install
-CMD ["-c", "pipenv shell"]
+#RUN pipenv install
+#RUN pipenv sync
+#CMD ["-c", "pipenv shell"]
