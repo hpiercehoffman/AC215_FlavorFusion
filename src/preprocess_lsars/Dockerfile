@@ -11,7 +11,7 @@ ENV PYENV_SHELL=/bin/bash
 
 # Authenticate via the flavor-fusion service account. If using 
 # gcloud CLI, these credentials are not needed.
-ENV GOOGLE_APPLICATION_CREDENTIALS=secrets/flavor-fusion.json
+ENV GOOGLE_APPLICATION_CREDENTIALS=secrets/flavor-fusion-service.json
 
 # Ensure we have an up to date baseline and install dependencies. 
 RUN set -ex; \
