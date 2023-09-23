@@ -1,0 +1,6 @@
+outs:
+- md5: 6957a30abc6366695fbfdde565d75ced.dir
+  size: 1645777266
+  nfiles: 2
+  hash: md5
+  path: google-data

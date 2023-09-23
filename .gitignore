@@ -10,6 +10,8 @@ src/docker-volumes/google-data
 
 # But don't ignore .dvc files in data directory
 !src/docker-volumes/lsars-data*.dvc
+!src/docker-volumes/google-data*.dvc
+
 
 # Jupyter files
 *.ipynb_checkpoints*

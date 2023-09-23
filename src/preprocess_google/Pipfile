@@ -14,6 +14,9 @@ tqdm = "*"
 rouge-score = "*"
 transformers = "*"
 dvc = "*"
+google-cloud-storage = "*"
+jupyterlab = "*"
+google-api-python-client = "*"
 
 [requires]
 python_version = "3.9"
