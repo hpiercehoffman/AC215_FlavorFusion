@@ -1,0 +1,38 @@
+version: "3.8"
+networks:
+    default:
+        name: preprocess-google-network
+        external: true
+services:
+    preprocess-lsars:
+        image: preprocess-google
+        container_name: preprocess-google
+        volumes:
+            - ../../../secrets/:/secrets
+            - ../docker-volumes/google-data/:/app/data
+            - ../docker-volumes/notebooks/:/app/notebooks
+        ports:
+            - 8888:8888
+        environment:
+            GOOGLE_APPLICATION_CREDENTIALS: /secrets/flavor-fusion-service.json
+            GCP_PROJECT: "flavor-fusion"
+            GCP_ZONE: "us-central1-a"
+            GCS_BUCKET_NAME: "reviews-data"
+            environment:
+            JUPYTER_ENABLE_LAB: "yes"
+            JUPYTER_TOKEN: "docker"
+    data-label-studio:
+        image: heartexlabs/label-studio:latest
+        container_name: data-label-studio
+        ports:
+            - 8080:8080
+        volumes:
+            - ./docker-volumes/label-studio:/label-studio/data
+            - ../secrets:/secrets
+        environment:
+            LABEL_STUDIO_DISABLE_SIGNUP_WITHOUT_LINK: "true"
+            LABEL_STUDIO_USERNAME: "vullanat@hms.harvard.edu" 
+            LABEL_STUDIO_PASSWORD: "Ammu051304!" 
+            GOOGLE_APPLICATION_CREDENTIALS: /secrets/flavor-fusion-service.json
+            GCP_PROJECT: "flavor-fusion"
+            GCP_ZONE: "us-central1-a"
