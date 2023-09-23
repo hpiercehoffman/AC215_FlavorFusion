@@ -8,7 +8,8 @@ services:
         image: preprocess-lsars
         container_name: preprocess-lsars
         volumes:
-            - ../secrets:/secrets
+            - ../../../secrets/:/secrets
+            - ./docker-volumes/lsars-data/:/app/data
         ports:
             - 8888:8888
         environment:

@@ -1,4 +1,9 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 
+# MacOS files
+*.DS_Store
+
+# Data directory
+src/preprocess_lsars/docker-volumes/
 

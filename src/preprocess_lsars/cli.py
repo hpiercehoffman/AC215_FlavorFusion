@@ -20,10 +20,7 @@ def download_data():
     bucket_name = GCS_BUCKET_NAME
 
     # Clear dataset folders
-    dataset_prep_folder = "lsars_data_prep"
-    shutil.rmtree(dataset_prep_folder, ignore_errors=True, onerror=None)
-    os.makedirs(dataset_prep_folder, exist_ok=True)
-    dataset_folder = "lsars_data"
+    dataset_folder = "data/chinese_data"
     shutil.rmtree(dataset_folder, ignore_errors=True, onerror=None)
     os.makedirs(dataset_folder, exist_ok=True)
 
@@ -32,13 +29,13 @@ def download_data():
     bucket = storage_client.bucket(bucket_name)
     blobs = bucket.list_blobs(prefix="chinese_data/")
 
-    # Download annotations
+    # Download data
     for blob in blobs:
-        print("Annotation file:", blob.name)
+        print("Data file:", blob.name)
 
         if not blob.name.endswith("chinese_data/"):
             filename = os.path.basename(blob.name)
-            local_file_path = os.path.join(dataset_prep_folder, filename)
+            local_file_path = os.path.join(dataset_folder, filename)
             blob.download_to_filename(local_file_path)
 
 
@@ -56,7 +53,7 @@ if __name__ == "__main__":
         "-d",
         "--download",
         action="store_true",
-        help="Download labeled data from a GCS Bucket",
+        help="Download raw data from a GCS Bucket",
     )
 
     args = parser.parse_args()
