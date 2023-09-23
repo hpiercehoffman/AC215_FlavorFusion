@@ -1,0 +1,4 @@
+[core]
+    remote = lsars-data
+['remote "lsars-data"']
+    url = gs://lsars-data/dvc_store

@@ -5,5 +5,8 @@ __pycache__/
 *.DS_Store
 
 # Data directory
-src/preprocess_lsars/docker-volumes/
+src/preprocess_lsars/docker-volumes/lsars-data
+
+# But don't ignore .dvc files in data directory
+!src/preprocess_lsars/docker-volumes/lsars-data*.dvc
 
