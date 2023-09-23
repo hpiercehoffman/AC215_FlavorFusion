@@ -31,19 +31,17 @@ USER app
 WORKDIR /app
 
 # Add Pipfile, Pipfile.lock
-ADD --chown=app:app Pipfile Pipfile.lock requirements.txt /app/
+ADD --chown=app:app Pipfile Pipfile.lock /app/
+RUN pipenv install
 
-RUN pip install -r requirements.txt
+RUN pipenv sync
 
-# Source code
+# Add the rest of the source code. This is done last so we don't invalidate all
+# layers when we change a line of code.
 ADD --chown=app:app . /app
 ENV PATH="${PATH}:/home/app/.local/bin"
 ENV Path="${PATH}:/home/app/.local/lib/python3.9/site-packages"
 
 # Entry point
-ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT ["pipenv","shell"]
 
-# Get into the pipenv shell
-#RUN pipenv install
-#RUN pipenv sync
-#CMD ["-c", "pipenv shell"]
