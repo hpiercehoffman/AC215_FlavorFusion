@@ -6,6 +6,7 @@ __pycache__/
 
 # Data directory
 src/docker-volumes/lsars-data
+src/docker-volumes/google-data
 
 # But don't ignore .dvc files in data directory
 !src/docker-volumes/lsars-data*.dvc
