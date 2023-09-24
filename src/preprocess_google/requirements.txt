@@ -1,7 +1,0 @@
-pytorch_lightning
-datasets
-spacy
-nltk
-tqdm
-rouge-score
-transformers

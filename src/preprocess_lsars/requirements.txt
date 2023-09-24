@@ -1,6 +1,0 @@
-google-cloud-storage
-jupyterlab
-pandas
-google-api-python-client
-dvc
-google-cloud-translate==2.0.1
