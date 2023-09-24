@@ -85,13 +85,26 @@ def download_data():
             local_file_path = os.path.join(dataset_folder, filename)
             blob.download_to_filename(local_file_path)
 
+def upload_data(output_file_path):
+    bucket_name = GCS_BUCKET_NAME
+    print("Uploading data to " + str(bucket_name))
+
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+
+    output_file_name = os.path.basename(output_file_path)
+    destination_blob_name = os.path.join('translated_data', output_file_name)
+    blob = bucket.blob(destination_blob_name)
+    blob.upload_from_filename(output_file_path)
+
 def main(args):
     if args.download:
         download_data()
-        
     review_jsons = load_jsons(args.reviews_file_path, int(args.start_line), int(args.stop_line))
     result_df = translate_reviews(review_jsons)
     result_df.to_csv(args.output_file_path)
+    if args.upload:
+        upload_data(args.output_file_path)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='LSARS dataset preprocessing')
@@ -100,6 +113,7 @@ if __name__ == "__main__":
     parser.add_argument('--stop_line', type=str, help='File line where processing should stop')
     parser.add_argument('--output_file_path', type=str, help='Filepath to output the results')
     parser.add_argument('-d','--download', action="store_true", help="Download raw data from GCS bucket",)
+    parser.add_argument('--upload', action="store_true", help="Upload output data to GCS bucket")
     args = parser.parse_args()
     
     main(args)
