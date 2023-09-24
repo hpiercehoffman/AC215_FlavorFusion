@@ -21,14 +21,17 @@ services:
             environment:
             JUPYTER_ENABLE_LAB: "yes"
             JUPYTER_TOKEN: "docker"
-    data-label-studio:
+            LABEL_STUDIO_URL: "http://data-label-studio:8080"
+        depends_on:
+            - google-data-label-studio
+    google-data-label-studio:
         image: heartexlabs/label-studio:latest
-        container_name: data-label-studio
+        container_name: google-data-label-studio
         ports:
             - 8080:8080
         volumes:
-            - ./docker-volumes/label-studio:/label-studio/data
-            - ../secrets:/secrets
+            - ../docker-volumes/google-data/:/app/data
+            - ../../../secrets/:/secrets
         environment:
             LABEL_STUDIO_DISABLE_SIGNUP_WITHOUT_LINK: "true"
             LABEL_STUDIO_USERNAME: "vullanat@hms.harvard.edu" 

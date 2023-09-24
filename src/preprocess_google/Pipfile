@@ -17,6 +17,7 @@ dvc = "*"
 google-cloud-storage = "*"
 jupyterlab = "*"
 google-api-python-client = "*"
+label-studio-sdk = "*"
 
 [requires]
 python_version = "3.9"
