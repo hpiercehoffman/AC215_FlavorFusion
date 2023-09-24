@@ -39,6 +39,10 @@ def download_data():
                 reviews_file_path = local_file_path
     return reviews_file_path, metadata_file_path
 
+"""
+Upload data to GCP bucket after preprocessing. Use this function if working in a VM without a mounted 
+bucket. 
+"""
 def upload_data(output_file_path):
     bucket_name = GCS_BUCKET_NAME
     print("Uploading data to " + str(bucket_name))
@@ -51,6 +55,10 @@ def upload_data(output_file_path):
     blob = bucket.blob(destination_blob_name)
     blob.upload_from_filename(output_file_path)
 
+"""
+Reads in the metadata json file containing business metadata and filters out only restaurants and their 
+relevant columns. 
+"""
 def make_metadata_df(fl):
     parser = parse(fl)
     rest_records = []
@@ -69,6 +77,9 @@ def make_metadata_df(fl):
                                              'relative_results', 'num_of_reviews'])
     return df
 
+"""
+Reads in the reviews json file containing all user reviews. Filters it according to the parameters. 
+"""
 def make_reviews_df(fl, min_char=0, max_char=10000):
     parser = parse(fl)
     reviews = []

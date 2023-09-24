@@ -85,6 +85,10 @@ def download_data():
             local_file_path = os.path.join(dataset_folder, filename)
             blob.download_to_filename(local_file_path)
 
+"""
+Upload data to GCP bucket after preprocessing. Use this function if working in a VM without a mounted 
+bucket. 
+"""
 def upload_data(output_file_path):
     bucket_name = GCS_BUCKET_NAME
     print("Uploading data to " + str(bucket_name))
