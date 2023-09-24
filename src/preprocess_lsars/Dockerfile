@@ -32,8 +32,10 @@ WORKDIR /app
 
 # Add Pipfile, Pipfile.lock
 ADD --chown=app:app Pipfile Pipfile.lock requirements.txt /app/
+RUN pipenv install
+RUN pipenv sync
 
-RUN pip install -r requirements.txt
+#RUN pip install -r requirements.txt
 
 # Source code
 ADD --chown=app:app . /app
@@ -41,9 +43,5 @@ ENV PATH="${PATH}:/home/app/.local/bin"
 ENV Path="${PATH}:/home/app/.local/lib/python3.9/site-packages"
 
 # Entry point
-ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT ["pipenv","shell"]
 
-# Get into the pipenv shell
-#RUN pipenv install
-#RUN pipenv sync
-#CMD ["-c", "pipenv shell"]

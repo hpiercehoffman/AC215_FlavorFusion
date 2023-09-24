@@ -40,10 +40,9 @@ def translate_reviews(review_jsons):
     return result_df
 
 def main(args):
-    review_jsons = load_jsons(args.reviews_file_path, args.start_line, args.stop_line)
+    review_jsons = load_jsons(args.reviews_file_path, int(args.start_line), int(args.stop_line))
     result_df = translate_reviews(review_jsons)
     result_df.to_csv(args.output_file_path)
-    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='LSARS dataset preprocessing')
@@ -51,7 +50,6 @@ if __name__ == "__main__":
     parser.add_argument('--start_line', type=str, help='File line where processing should start')
     parser.add_argument('--stop_line', type=str, help='File line where processing should stop')
     parser.add_argument('--output_file_path', type=str, help='Filepath to output the results')
-    #parser.add_argument('--translate', type=bool, help='Whether to translate text')
     args = parser.parse_args()
     
     main(args)

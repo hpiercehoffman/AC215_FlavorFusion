@@ -4,12 +4,12 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [packages]
-google-cloud-storage = "*"
+dvc = "*"
 jupyterlab = "*"
 pandas = "*"
-deep_translator = "*"
+google-cloud-storage = "*"
 google-api-python-client = "*"
-dvc = "*"
+google-cloud-translate = "2.0.1"
 
 [dev-packages]
 
