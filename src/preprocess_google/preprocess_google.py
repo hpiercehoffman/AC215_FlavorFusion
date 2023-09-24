@@ -123,7 +123,7 @@ if __name__ == "__main__":
     parser.add_argument('--output_file_path', type=str, help='Path of the reviews file')
     parser.add_argument('--upload', action="store_true", help="Upload output data to GCS bucket")
     parser.add_argument('--min_char', type=int, default=0, help='Minimum number of characters in each review')
-    parser.add_argument('--max_char', type=int, default=1000000, help='Minimum number of characters in each review')
+    parser.add_argument('--max_char', type=int, default=1000000, help='Maximum number of characters in each review')
     parser.add_argument('--max_num_reviews', type=int, default=1000, help='Maximum number of reviews for each business')
     args = parser.parse_args()
     
