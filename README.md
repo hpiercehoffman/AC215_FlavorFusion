@@ -54,13 +54,12 @@ We use two datasets in this work:
 ### preprocess_google container ###
 - This container reads 2GB of Google Local data and filters out non-restaurant businesses and low-quality reviews.
 - The inputs for this container are the following:
-    - Input and output filepaths (must be mounted in `docker-volumes`)
+    - Input and output filepaths (must be mounted in `docker-volumes` or downloaded from GCP)
     - Preprocessing parameters
     - Secrets file (contains service account credentials for Google Cloud)
-- The output from this container is 
-- Output from this container stored on mounted folder
+- The output from this container is a CSV file containing merged data for all businesses, where the columns are business name, location, and all reviews seperated by a special token.
 
-1. `src/preprocess_google/preprocess.py` Here we do preprocessing on our Google Local dataset. We read the reviews and metadata json files, filter them according to input parameters, and combine them such that all reviews for each restaraunt are concatenated by a special separating token. 
+1. `src/preprocess_google/preprocess_google.py` Here we do preprocessing on our Google Local dataset. We read the reviews and metadata json files, filter them according to input parameters, and combine them such that all reviews for each restaraunt are concatenated by a special separating token. We also introduce capability to download raw data from GCP and upload outputs to GCP.
 1. `src/preprocess_google/utils.py` This file includes utility functions such as reading json files, plus an array of business labels relating to restaurants. 
 1. `src/preprocess_google/cors.py` This file enables CORS to connect to Label Studio directly from GCS Bucket. 
 1. `src/preprocess_google/Dockerfile` This docker sets up a `pipenv` virtual environment for data processing. In the file, we use our service account to connect to Google Cloud. We then create a user named `app` and install the required python packages from `src/preprocess_google/Pipfile`.
@@ -72,11 +71,11 @@ To run Dockerfile - `Instructions here`
 - This container is responsible for preprocessing and translating the LSARS dataset, which is in Chinese.
 - We use the Google Cloud Translate API to translate the text to English. This API provides free translation for the first 500,000 tokens, but after that, the price is $20 per 1 million tokens. We authenticate to the Cloud Translate API via our project's service account.
 - The inputs for this container are the following:
-    - Input and output filepaths (must be mounted in `docker-volumes`
+    - Input and output filepaths (must be mounted in `docker-volumes`)
     - Preprocessing parameters
     - Secrets file (contains service account credentials for Google Cloud)
 - The output of this container is a CSV file containing translated data. Since the data is large, we translate it in chunks and produce a CSV file for each chunk. We maintain the train-test split from the original dataset.
-1. `src/preprocess_lsars/preprocess_lsars.py` In this file, we process a specified set of JSON records from the LSARS dataset. We translate each record using the Google Cloud Translate API, and output a CSV file containing translated records. Each record consists of a unique identifier, a summary review, and a list of summarized reviews concatenated by a separator token.
+1. `src/preprocess_lsars/preprocess_lsars.py` In this file, we process a specified set of JSON records from the LSARS dataset. We translate each record using the Google Cloud Translate API, and output a CSV file containing translated records. Each record consists of a unique identifier, a summary review, and a list of summarized reviews concatenated by a separator token.  We also introduce capability to download raw data from GCP and upload outputs to GCP.
 1. `src/preprocess_lsars/Dockerfile` This docker sets up a `pipenv` virtual environment for data processing. In the file, we use our service account to connect to Google Cloud. We then create a user named `app` and install the required python packages from `src/preprocess_lsars/Pipfile`.
 1. `src/preprocess_lsars/docker-shell.sh` This script sets up a network so the Docker container can communicate with the outside world via ports. Next, the script builds our Docker container and uses `src/preprocess_lsars/docker-compose.yml` to set up the full container environment.
 
@@ -103,6 +102,18 @@ Both Docker containers delivered in this milestone can be run via the `docker-sh
 The relevant Dockerfile will build and you will be dropped into a shell prompt as `app` user. From there, you can run a data processing script or connect to a Jupyter session.
 
 ### Running preprocess_google.py script ###
+To run this script, you must activate the `preprocess_google` docker container. Once you are inside the container, you can run the script with the following arguments:
+- `--download`: Flag to indicate that the untranslated data should be downloaded from our GCS bucket (will not overwrite any previously translated data)
+- `--reviews_file_path`: Path to reviews file (either pre-mounted or downloaded with the `-d` flag)
+- `--metadata_file_path`: Path to metadata file (either pre-mounted or downloaded with the `-d` flag)
+- `--output_file_path`: Path where translated data will be placed (should be in a mounted volume to avoid losing the data)
+- `--upload`: Flag to indicate whether the output file should be uploaded to our GCS bucket 
+- `--min_char`: Minimum number of characters in each review
+- `--max_char`: Maximum number of characters in each review
+- `--stop_line`: Line in the input file where translation should stop
+- `--max_num_reviews`: Maximum number of reviews for each business
+
+We only preprocess data from the state of Massachusetts for this milestone. 
 
 ### Running preprocess_lsars.py script ###
 To run this script, you must activate the `preprocess_lsars` docker container. Once you are inside the container, you can run the script with the following arguments:
@@ -111,12 +122,14 @@ To run this script, you must activate the `preprocess_lsars` docker container. O
 - `--start_line`: Line in the input file where translation should start (each line is a single JSON record containing a summary and a group of reviews)
 - `--stop_line`: Line in the input file where translation should stop
 - `--output_file_path`: Path where translated data will be placed (should be in a mounted volume to avoid losing the data)
+- `--upload`: Flag to indicate whether the output file should be uploaded to our GCS bucket 
    
 Since the LSARS dataset contains large files, we provide `start_line` and `stop_line` arguments so the user can avoid reading an entire file into memory at once. We also provide the option of downloading the raw data, which is useful if the user is working in a GCP VM without a mounted bucket.     
     
 Translating 500 reviews takes about 6 minutes. The script will output a progress bar showing how many records have been translated.
 
 ### Working with Label Studio
+
 
 ### Connecting to a docker container with Jupyter ###
 We used Jupyter Lab to write and debug preprocessing scripts. Running Jupyter Lab inside either of our docker containers is straightforward. Both containers are configured in `docker-compose.yml` to connect to port 8888 on the host machine. Therefore, once you have a container running on your local machine, you can run the following commands to connect to the container with Jupyter:
