@@ -133,7 +133,7 @@ Translating 500 reviews takes about 6 minutes. The script will output a progress
 We use Label Studio to manually summarize a set of reviews from the Google Local dataset. This is to run few-shot inference on a trained model in the future. The steps are as follows:
 
 - When you run `./docker-shell.sh` for the preprocess_google container, you will automically see a 'heartexlabs/label-studio:latest' container opened at port `http://localhost:8080`.
-- Go to to the port and enter the credentials in `src/preprocess_google/docker-compose.ym`.
+- Go to to the port and enter the credentials in `src/preprocess_google/docker-compose.yml`.
 - Click on `Create Project` and enter project name and description.
 - We can import the processed output file from `preprocess_google.py` directly in the `Data Import` step. Click import as csv/tsv.
 - On `Labeling Setup` you have to choose Natural Language Processing > Text Summarization. Select 'text' as the column to be summarized.
