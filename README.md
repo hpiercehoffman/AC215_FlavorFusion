@@ -130,6 +130,25 @@ Translating 500 reviews takes about 6 minutes. The script will output a progress
 
 ### Working with Label Studio
 
+We use Label Studio to manually summarize a set of reviews from the Google Local dataset. This is to run few-shot inference on a trained model in the future. The steps are as follows:
+
+- When you run `./docker-shell.sh` for the preprocess_google container, you will automically see a 'heartexlabs/label-studio:latest' container opened at port `http://localhost:8080`.
+- Go to to the port and enter the credentials in `src/preprocess_google/docker-compose.ym`.
+- Click on `Create Project` and enter project name and description.
+- We can import the processed output file from `preprocess_google.py` directly in the `Data Import` step. Click import as csv/tsv.
+- On `Labeling Setup` you have to choose Natural Language Processing > Text Summarization. Select 'text' as the column to be summarized.
+- Now, we label about 10 summaries by copy-pasting the reviews into ChatGPT using the following prompt: "Summarise these restaurant reviews that are separated by ||||| into one representative sentence: " followed by the reviews.
+- After summarizing them, we export the data by going to `Add Cloud Storage` in `Cloud Storage` under `Settings`.
+* Storage Type: `Google Cloud Storage`
+* Storage Title: `labelled_data`
+* Bucket Name: `reviews-data`
+* Bucket Prefix: `labelled_data`
+* File Filter Regex: .*
+* Enable: Treat every bucket object as a source file
+* Enable: Use pre-signed URLs
+* Ignore: Google Application Credentials (This should populate with your secrets key)
+* Ignore: Google Project ID
+- Now, you will see the individual annotated json files in `labelled_data` under the `reviews-data` bucket. 
 
 ### Connecting to a docker container with Jupyter ###
 We used Jupyter Lab to write and debug preprocessing scripts. Running Jupyter Lab inside either of our docker containers is straightforward. Both containers are configured in `docker-compose.yml` to connect to port 8888 on the host machine. Therefore, once you have a container running on your local machine, you can run the following commands to connect to the container with Jupyter:
