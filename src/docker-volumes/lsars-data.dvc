@@ -1,6 +1,6 @@
 outs:
-- md5: 3bd42394ca14d204344ffd041152cf7d.dir
-  size: 262689719
-  nfiles: 7
+- md5: 7bb9b06eca85b2e923d650ca41ac4986.dir
+  size: 264014180
+  nfiles: 8
   hash: md5
   path: lsars-data

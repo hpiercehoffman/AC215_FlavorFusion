@@ -1,6 +1,6 @@
 google-cloud-storage
 jupyterlab
 pandas
-deep_translator
 google-api-python-client
 dvc
+google-cloud-translate==2.0.1

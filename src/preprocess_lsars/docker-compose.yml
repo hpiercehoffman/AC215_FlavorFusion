@@ -9,7 +9,7 @@ services:
         container_name: preprocess-lsars
         volumes:
             - ../../../secrets/:/secrets
-            - ../lsars-docker-volumes/data/:/app/data
+            - ../docker-volumes/lsars-data/:/app/data
             - ../docker-volumes/notebooks/:/app/notebooks
         ports:
             - 8888:8888
