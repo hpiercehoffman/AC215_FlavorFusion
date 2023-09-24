@@ -82,8 +82,34 @@ To run Dockerfile - `Instructions here`
 
 To run Dockerfile - `Instructions here`
 
+### docker-volumes ###
+This directory is mounted to both the `preprocess_google` and `preprocess_lsars` Docker containers in the `docker-compose.yml` file for each container. This directory contains data (not tracked on Github) as well as notebooks which may be edited inside the Docker container.
+
 ### Notebooks ###    
 This directory is currently empty, but will be used to store code which doesn't belong to a specific container, such as reports, insights, or visualizations.
 
 ### References ###  
 This directory is currently empty, but will be used to store code from the [PRIMERA model](https://github.com/allenai/PRIMER).
+
+--------
+# Setup Notes #
+
+### Running Docker containers ###   
+Both Docker containers delivered in this milestone can be run via the `docker-shell.sh` script inside the container. To run the container of your choice, do the following:
+- Clone the repository and checkout the `milestone2` branch
+- `cd src/<desired_directory>`
+- `chmod 777 docker-shell.sh`
+- `./docker-shell.sh`
+The relevant Dockerfile will build and you will be dropped into a shell prompt as `app` user. From there, you can run a data processing script or connect to a Jupyter session.
+
+### Running preprocess_google.py script ###
+
+### Running preprocess_lsars.py script ###
+
+### Connecting to a docker container with Jupyter ###
+
+### Committing data files to DVC ###
+
+
+
+
