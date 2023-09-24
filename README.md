@@ -48,8 +48,8 @@ In this project, we aim to build an app that captures cultural differences in Go
 ## Milestone 2 Contents ##
 
 We use two datasets in this work:
-1. Google Local dataset: Reviews and business metadata from the state of Massachusetts, USA, totalling about 2GB of data. This dataset can be found in the reviews-data bucket on our private Google Cloud project. We sourced this data from [here](https://datarepo.eng.ucsd.edu/mcauley_group/gdrive/googlelocal/).
-2. LSARS dataset: Reviews of products from an e-commerece website with a total space of 250 MB. This dataset can be found in the lsars-data bucket on our private Google Cloud project. We sourced this data from [here](https://github.com/ScarletPan/LSARS).
+1. **Google Local dataset**: Reviews and business metadata from the state of Massachusetts, USA, totalling about 2GB of data. This dataset can be found in the reviews-data bucket on our private Google Cloud project. We sourced this data from [here](https://datarepo.eng.ucsd.edu/mcauley_group/gdrive/googlelocal/).
+2. **LSARS dataset**: Reviews of products from an e-commerece website with a total space of 250 MB. This dataset can be found in the lsars-data bucket on our private Google Cloud project. We sourced this data from [here](https://github.com/ScarletPan/LSARS).
 
 ### preprocess_google container ###
 - This container reads 2GB of Google Local data and filters out non-restaurant businesses and low-quality reviews.
@@ -105,11 +105,42 @@ The relevant Dockerfile will build and you will be dropped into a shell prompt a
 ### Running preprocess_google.py script ###
 
 ### Running preprocess_lsars.py script ###
+To run this script, you must activate the `preprocess_lsars` docker container. Once you are inside the container, you can run the script with the following arguments:
+- `-d` or `--download`: Flag to indicate that the untranslated data should be downloaded from our GCS bucket (will not overwrite any previously translated data)
+- `--reviews_file_path`: Path to untranslated review file (either pre-mounted or downloaded with the `-d` flag)
+- `--start_line`: Line in the input file where translation should start (each line is a single JSON record containing a summary and a group of reviews)
+- `--stop_line`: Line in the input file where translation should stop
+- `--output_file_path`: Path where translated data will be placed (should be in a mounted volume to avoid losing the data)
+   
+Since the LSARS dataset contains large files, we provide `start_line` and `stop_line` arguments so the user can avoid reading an entire file into memory at once. We also provide the option of downloading the raw data, which is useful if the user is working in a GCP VM without a mounted bucket.     
+    
+Translating 500 reviews takes about 6 minutes. The script will output a progress bar showing how many records have been translated.
+
+### Working with Label Studio
 
 ### Connecting to a docker container with Jupyter ###
+We used Jupyter Lab to write and debug preprocessing scripts. Running Jupyter Lab inside either of our docker containers is straightforward. Both containers are configured in `docker-compose.yml` to connect to port 8888 on the host machine. Therefore, once you have a container running on your local machine, you can run the following commands to connect to the container with Jupyter:
+- `jupyter lab --ip 0.0.0.0 --no-browser --allow-root` (run inside the container)
+- Navigate to `http://localhost:8888` on your local machine
+- Enter password "docker" to access Jupyter Lab
 
 ### Committing data files to DVC ###
+We use DVC as our data versioning pipeline. Our DVC configuration has one remote for each dataset. The remote for LSARS data is called `lsars-data`, and the remote for Google data is called `google-data`. 
 
+To download a specific version of one of our datasets, you can use the [dvc get](https://dvc.org/doc/command-reference/get) command. You need to specify a [dataset tag](https://github.com/hpiercehoffman/AC215_FlavorFusion/tags) as well as a remote to use.
+
+**Example of downloading a specific dataset version**   
+`dvc get https://github.com/hpiercehoffman/AC215_FlavorFusion/ src/docker-volumes/lsars-data --force --rev  lsars_train500 --remote lsars-data`     
+  
+The above command will download the `lsars-data` directory from the `lsars-data` remote. The data version will match the `lsars_train500` tag.
+
+To add new or modified data files to DVC, you can use the [dvc add](https://dvc.org/doc/command-reference/add) command. You can then use [dvc push](https://dvc.org/doc/command-reference/push) to push to the appropriate remote.   
+  
+**Example of pushing new data to DVC**    
+`dvc add src/docker-volumes/lsars-data`  
+`dvc push src/docker-volumes/lsars-data -r lsars-data`  
+  
+The above commands will add any modifications in the `lsars-data` directory to the DVC staging area, then push these modifications to the DVC remote which handles LSARS data.
 
 
 
