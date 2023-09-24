@@ -139,15 +139,15 @@ We use Label Studio to manually summarize a set of reviews from the Google Local
 - On `Labeling Setup` you have to choose Natural Language Processing > Text Summarization. Select 'text' as the column to be summarized.
 - Now, we label about 10 summaries by copy-pasting the reviews into ChatGPT using the following prompt: "Summarise these restaurant reviews that are separated by ||||| into one representative sentence: " followed by the reviews.
 - After summarizing them, we export the data by going to `Add Cloud Storage` in `Cloud Storage` under `Settings`.
-* Storage Type: `Google Cloud Storage`
-* Storage Title: `labelled_data`
-* Bucket Name: `reviews-data`
-* Bucket Prefix: `labelled_data`
-* File Filter Regex: .*
-* Enable: Treat every bucket object as a source file
-* Enable: Use pre-signed URLs
-* Ignore: Google Application Credentials (This should populate with your secrets key)
-* Ignore: Google Project ID
+      * Storage Type: `Google Cloud Storage`
+      * Storage Title: `labelled_data`
+      * Bucket Name: `reviews-data`
+      * Bucket Prefix: `labelled_data`
+      * File Filter Regex: .*
+      * Enable: Treat every bucket object as a source file
+      * Enable: Use pre-signed URLs
+      * Ignore: Google Application Credentials (This should populate with your secrets key)
+      * Ignore: Google Project ID
 - Now, you will see the individual annotated json files in `labelled_data` under the `reviews-data` bucket. 
 
 ### Connecting to a docker container with Jupyter ###
