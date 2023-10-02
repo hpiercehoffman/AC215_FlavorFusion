@@ -12,6 +12,12 @@ google-cloud-storage = "*"
 google-api-python-client = "*"
 torch = "*"
 transformers = "*"
+datasets = "*"
+nltk = "*"
+tqdm = "*"
+rouge-score = "*"
+jupyterlab = "*"
+wandb = "*"
 
 [dev-packages]
 
