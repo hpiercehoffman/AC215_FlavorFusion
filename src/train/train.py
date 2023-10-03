@@ -11,6 +11,7 @@ import random
 import os
 import wandb
 import argparse
+import shutil
 
 from datasets import load_dataset, load_metric
 from transformers import (
@@ -35,8 +36,8 @@ def download_data(local_folder):
     print("Downloading data from " + str(bucket_name))
     
     # Clear existing dataset folders so we get a clean copy
-    shutil.rmtree(local_folder, ignore_errors=True, onerror=None)
-    os.makedirs(local_folder, exist_ok=True)
+    #shutil.rmtree(local_folder, ignore_errors=True, onerror=None)
+    #os.makedirs(local_folder, exist_ok=True)
 
     # Initiate storage client and download data
     storage_client = storage.Client()
@@ -221,7 +222,7 @@ def main(args):
     # Shuffle dataset and create train-test split
     raw_dataset = raw_dataset.shuffle(seed=42)
     if args.streaming:
-        TOTAL_SIZE = 5000
+        TOTAL_SIZE = 5100
         raw_dataset_test = raw_dataset.take(int(args.test_ratio*TOTAL_SIZE))
         raw_dataset_train = raw_dataset.skip(int(args.test_ratio*TOTAL_SIZE))
         column_names = ['review_str', 'summary', 'id']
@@ -328,7 +329,7 @@ def main(args):
     
     # Generate training arguments 
     training_args = Seq2SeqTrainingArguments(
-        output_dir="./results",
+        output_dir=os.path.join(args.input_dir, "results"),
         evaluation_strategy="epoch",
         save_strategy="epoch",
         report_to="wandb" if args.wandb else None,
@@ -386,13 +387,13 @@ if __name__ == "__main__":
     parser.add_argument('--k_top_longest', type=int, default=20, help='Keep only the k longest reviews for each data point')
     parser.add_argument('--num_processes', type=int, default=4, help='Number of processes used for multiprocessing the dataset')
     parser.add_argument('--max_source_length', type=int, default=4096, help='Maximum number of tokens for each set of reviews')
-    parser.add_argument('--max_target_length', type=int, default=1024, help='Maximum number of tokens for each summary in areview set')
+    parser.add_argument('--max_target_length', type=int, default=1024, help='Maximum number of tokens for each summary in a review set')
     parser.add_argument('--subset_dataset_to', type=int, default=None, help='Whether to subset dataset for debugging')
     
     # Training args
     parser.add_argument('--lr', type=float, default=2e-5, help='Learning rate for training')
     parser.add_argument('--batch_size', type=int, default=1, help='Batch size for training')
-    parser.add_argument('--num_train_epochs', type=int, default=50, help='Total number of epochs for training')
+    parser.add_argument('--num_train_epochs', type=int, default=20, help='Total number of epochs for training')
     
     args = parser.parse_args()
     
