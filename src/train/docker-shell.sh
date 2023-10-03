@@ -9,4 +9,4 @@ docker network inspect train-primera-network >/dev/null 2>&1 || docker network c
 docker build -t train-primera --platform=linux/amd64 -f Dockerfile .
 
 # Run All Containers
-docker-compose run --rm --service-ports train-primera
+docker compose run --rm --service-ports train-primera
