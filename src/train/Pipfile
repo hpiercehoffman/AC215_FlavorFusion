@@ -17,6 +17,7 @@ nltk = "*"
 tqdm = "*"
 rouge-score = "*"
 wandb = "*"
+accelerate = "*"
 
 [dev-packages]
 
