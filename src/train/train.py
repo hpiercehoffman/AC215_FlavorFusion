@@ -176,7 +176,7 @@ def preprocess_function(examples, tokenizer, text_column, summary_column, max_so
         model_inputs.input_ids,
         token_ids=tokenizer.convert_tokens_to_ids(global_attention_tokens),
     )
-    print(f"Using global attention on the following tokens: {global_attention_tokens}")
+    #print(f"Using global attention on the following tokens: {global_attention_tokens}")
     return model_inputs
 
 def postprocess_text(preds, labels):
@@ -189,6 +189,12 @@ def postprocess_text(preds, labels):
 
     return preds, labels
 
+def length_of_iterable_dataset(dataset):
+    count=0
+    for i in dataset:
+        count+=1
+    return count
+
 def main(args):
     
     # Make sure you have done 'wandb auth' 
@@ -196,19 +202,7 @@ def main(args):
         os.environ["WANDB_PROJECT"]="FlavorFusion"
         os.environ["WANDB_LOG_MODEL"]="true"
         os.environ["WANDB_WATCH"]="false"
-    
-    # Have to check of this works
-    if args.download:
-        download_data(local_folder = args.input_dir)
-        
-    # Reads all csv files in the given folder
-    data_files = {'train': os.path.join(args.input_dir, '*.csv')}
-    raw_dataset = load_dataset('csv', data_files=data_files, split='train')
-    column_names = raw_dataset.column_names
-    
-    # Shuffle dataset and create train-test split
-    raw_dataset = raw_dataset.shuffle(seed=42)
-    raw_dataset = raw_dataset.train_test_split(test_size=args.test_ratio)
+        wandb.init(dir=args.input_dir)
     
     # Load pre-trained model, tokenizer and config files
     tokenizer = AutoTokenizer.from_pretrained('allenai/PRIMERA')
@@ -216,16 +210,48 @@ def main(args):
     model = AutoModelForSeq2SeqLM.from_pretrained('allenai/PRIMERA')
     model.resize_token_embeddings(len(tokenizer))
     
+    # TODO: Have to check if this works
+    if args.download:
+        download_data(local_folder = args.input_dir)
+        
+    # Reads all csv files in the given folder
+    data_files = {'train': os.path.join(args.input_dir, '*.csv')}
+    raw_dataset = load_dataset('csv', data_files=data_files, split='train', streaming = True if args.streaming else False)
+    
+    # Shuffle dataset and create train-test split
+    raw_dataset = raw_dataset.shuffle(seed=42)
+    if args.streaming:
+        TOTAL_SIZE = 5000
+        raw_dataset_test = raw_dataset.take(int(args.test_ratio*TOTAL_SIZE))
+        raw_dataset_train = raw_dataset.skip(int(args.test_ratio*TOTAL_SIZE))
+        column_names = ['review_str', 'summary', 'id']
+    else:
+        column_names = raw_dataset.column_names
+        raw_dataset = raw_dataset.train_test_split(test_size=args.test_ratio)
+    
     # Augment the data by shortening each multi-review set to only 'args.max_docs_per_review' (default=5) per review set
     aug_kwargs = {'max_docs_per_review':args.max_docs_per_review, 'k_top_longest': args.k_top_longest}
-    aug_dataset = raw_dataset.map(
-        sample_reviews,
-        fn_kwargs=aug_kwargs,
-        batched=True,
-        num_proc=args.num_processes,
-        remove_columns=column_names,
-        desc="Augmenting train and test datasets",
-        )
+    
+    if args.streaming:
+        aug_dataset_train = raw_dataset_train.map(
+            sample_reviews,
+            fn_kwargs=aug_kwargs,
+            batched=True,
+            remove_columns=column_names)
+        aug_dataset_test = raw_dataset_test.map(
+            sample_reviews,
+            fn_kwargs=aug_kwargs,
+            batched=True,
+            remove_columns=column_names)
+        num_data_points = length_of_iterable_dataset(aug_dataset_train)
+    else:
+        aug_dataset = raw_dataset.map(
+            sample_reviews,
+            fn_kwargs=aug_kwargs,
+            batched=True,
+            num_proc=args.num_processes,
+            remove_columns=column_names,
+            desc="Augmenting train and test datasets")
     
     # Tokenize data and construct attention masks
     token_kwargs = {'text_column': 'augmented_review_str', 
@@ -233,18 +259,33 @@ def main(args):
                     'summary_column': 'new_summary', 
                     'max_source_length': args.max_source_length, 
                     'max_target_length': args.max_target_length}
-    full_dataset = aug_dataset.map(
-        preprocess_function,
-        fn_kwargs=token_kwargs,
-        batched=True,
-        num_proc=args.num_processes,
-        desc="Running tokenizer on train and test datasets",
-        )
+    
+    
+    if args.streaming:
+        train_dataset = aug_dataset_train.map(
+            preprocess_function,
+            fn_kwargs=token_kwargs,
+            batched=True)
+        test_dataset = aug_dataset_test.map(
+            preprocess_function,
+            fn_kwargs=token_kwargs,
+            batched=True)
+    else:
+        full_dataset = aug_dataset.map(
+            preprocess_function,
+            fn_kwargs=token_kwargs,
+            batched=True,
+            num_proc=args.num_processes,
+            desc="Running tokenizer on train and test datasets")
     
     # If you want to make dataset smaller (for debugging)
     if args.subset_dataset_to is not None:
-        train_dataset = full_dataset['train'].select(range(args.subset_dataset_to))
-        test_dataset = full_dataset['test'].select(range(args.subset_dataset_to))
+        if args.streaming:
+            train_dataset = train_dataset.take(args.subset_dataset_to)
+            test_dataset = test_dataset.take(args.subset_dataset_to)
+        else:
+            train_dataset = full_dataset['train'].select(range(args.subset_dataset_to))
+            test_dataset = full_dataset['test'].select(range(args.subset_dataset_to))
     else:
         train_dataset = full_dataset['train']
         test_dataset = full_dataset['test']
@@ -298,6 +339,7 @@ def main(args):
         save_total_limit=3,
         load_best_model_at_end=True,
         num_train_epochs=args.num_train_epochs,
+        max_steps=num_data_points//args.batch_size if args.streaming else -1,
         logging_steps=1,
         fp16=True,
         predict_with_generate=True)
@@ -334,7 +376,8 @@ if __name__ == "__main__":
     parser.add_argument('--input_dir', type=str, help='Path to folder containing LSARS csv files')
     parser.add_argument('--model_output_path', type=str, help='Path to model output')
     parser.add_argument('--download', action="store_true", help="Download processed LSARS data from GCS bucket")
-    parser.add_argument('--wandb', action="store_true", help='Whether to use wandb for logging')
+    parser.add_argument('--wandb', action="store_true", default=False, help='Whether to use wandb for logging')
+    parser.add_argument('--streaming', action="store_true", default=False, help='Whether to stream data')
 
     
     # Data processing args
