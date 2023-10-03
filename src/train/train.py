@@ -13,6 +13,8 @@ import wandb
 import argparse
 import shutil
 
+from google.cloud import storage
+
 from datasets import load_dataset, load_metric
 from transformers import (
     AutoConfig,
@@ -28,8 +30,6 @@ from transformers import (
 
 
 def download_data(local_folder):
-    from google.cloud import translate_v2 as translate
-    from google.cloud import storage
     GCS_BUCKET_NAME = os.environ["GCS_BUCKET_NAME"]
     
     bucket_name = GCS_BUCKET_NAME
