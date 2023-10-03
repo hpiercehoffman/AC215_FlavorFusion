@@ -16,7 +16,6 @@ datasets = "*"
 nltk = "*"
 tqdm = "*"
 rouge-score = "*"
-jupyterlab = "*"
 wandb = "*"
 
 [dev-packages]

@@ -4,7 +4,7 @@ networks:
         name: train-primera-network
         external: true
 services:
-    preprocess-lsars:
+    train-primera:
         image: train-primera
         container_name: train-primera
         volumes:
