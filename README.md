@@ -91,19 +91,33 @@ This directory contains our reports from past milestones:
 ### References ###  
 (add info here)
 
+## Experiment Tracking ##
+
+
+
+## Serverless Training ##
+
+
+## Data Pipeline ##
+We built our data pipeline in Milestone 2. Our data pipeline uses DVC and Label Studio, as well as preprocessing scripts, to convert data from the **LSARS** and **Google Reviews** datasets into a convenient format for model training. For more information on our data pipeline, including examples showing how to download specific data versions, please see the [Setup Notes](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/reports/milestone2.md#setup-notes) section of our Milestone 2 report.
+
 --------
 # Setup Notes #
 
-### Running Docker containers ###   
-Both Docker containers delivered in this milestone can be run via the `docker-shell.sh` script inside the container. To run the container of your choice, do the following:
-- Clone the repository and checkout the `milestone2` branch
-- `cd src/<desired_directory>`
+### GCP VM setup ###
+
+### Running the training Docker container ###   
+The Dockerfile for model training can be run via the `docker-shell.sh` script inside the container. To run this container, do the following:
+- Clone the repository and checkout the `milestone3` branch
+- `cd src/train`
 - `chmod 777 docker-shell.sh`
 - `./docker-shell.sh`
-The relevant Dockerfile will build and you will be dropped into a shell prompt as `app` user. From there, you can run a data processing script or connect to a Jupyter session. 
+The Dockerfile for model training will build and you will be dropped into a shell prompt as `app` user. From there, you can kick off a model training run using the `train.py` script.
 
-### Running preprocess_lsars.py script ###
+### Running train.py script ###
 To run this script, you must activate the `preprocess_lsars` docker container. Once you are inside the container, you can run the script with the following arguments:
+
+
 - `-d` or `--download`: Flag to indicate that the untranslated data should be downloaded from our GCS bucket (will not overwrite any previously translated data)
 - `--reviews_file_path`: Path to untranslated review file (either pre-mounted or downloaded with the `-d` flag)
 - `--start_line`: Line in the input file where translation should start (each line is a single JSON record containing a summary and a group of reviews)
@@ -115,25 +129,6 @@ Since the LSARS dataset contains large files, we provide `start_line` and `stop_
     
 Translating 500 reviews takes about 6 minutes. The script will output a progress bar showing how many records have been translated.
 
-
-
-### Committing data files to DVC ###
-We use DVC as our data versioning pipeline. Our DVC configuration has one remote for each dataset. The remote for LSARS data is called `lsars-data`, and the remote for Google data is called `google-data`. 
-
-To download a specific version of one of our datasets, you can use the [dvc get](https://dvc.org/doc/command-reference/get) command. You need to specify a [dataset tag](https://github.com/hpiercehoffman/AC215_FlavorFusion/tags) as well as a remote to use.
-
-**Example of downloading a specific dataset version**   
-`dvc get https://github.com/hpiercehoffman/AC215_FlavorFusion/ src/docker-volumes/lsars-data --force --rev  lsars_train500 --remote lsars-data`     
-  
-The above command will download the `lsars-data` directory from the `lsars-data` remote. The data version will match the `lsars_train500` tag.
-
-To add new or modified data files to DVC, you can use the [dvc add](https://dvc.org/doc/command-reference/add) command. You can then use [dvc push](https://dvc.org/doc/command-reference/push) to push to the appropriate remote.   
-  
-**Example of pushing new data to DVC**    
-`dvc add src/docker-volumes/lsars-data`  
-`dvc push src/docker-volumes/lsars-data -r lsars-data`  
-  
-The above commands will add any modifications in the `lsars-data` directory to the DVC staging area, then push these modifications to the DVC remote which handles LSARS data.
 
 # References #
 
