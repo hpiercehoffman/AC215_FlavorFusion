@@ -157,7 +157,7 @@ To run this script, you must activate the `train` docker container. Once you are
 - `--max_target_length`: Maximum number of tokens for each summary review. Tokens beyond this length will be truncated.
 - `--subset_dataset_to`: Number of data points to use if not training on the entire dataset; this is primarily a debugging option when checking if the training script works.
 - `--lr`: Learning rate for training. We train with a lower learning rate when using pre-trained weights, since the model doesn't have to start from a random initialization.
-- `batch_size`: Number of data points to be processed in each batch.
+- `--batch_size`: Number of data points to be processed in each batch.
 - `--num_train_epochs`: Number of epochs to train for.
 
 When training on a single Nvidia L4 GPU with a batch size of 1 and all data points subsampled to the longest 5 reviews with no data augmentation, each epoch takes about 2.25 hours.
