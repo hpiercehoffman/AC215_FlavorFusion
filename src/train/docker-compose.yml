@@ -16,7 +16,7 @@ services:
             GOOGLE_APPLICATION_CREDENTIALS: /secrets/flavor-fusion-service.json
             GCP_PROJECT: "flavor-fusion"
             GCP_ZONE: "us-central1-a"
-            GCS_LSARS_BUCKET: "lsars-data"
+            GCS_DATA_BUCKET: "lsars-data"
             GCS_MODEL_BUCKET: "primera-training"
             JUPYTER_ENABLE_LAB: "yes"
             JUPYTER_TOKEN: "docker"
