@@ -14,27 +14,28 @@ from google.cloud import storage
 
 GCS_BUCKET_NAME = os.environ["GCS_BUCKET_NAME"]
 
-"""
-Load specified lines from an input file (useful since the dataset is large and 
-we don't want to store all of it in memory at once).
-"""
 def load_jsons(filepath, start_line, stop_line):
+    """
+    Load specified lines from an input file (useful since the dataset is large and 
+    we don't want to store all of it in memory at once).
+    """
     print("Loading lines " + str(start_line) + " to " + str(stop_line) + " from " + str(filepath))
     with open(filepath, 'r') as fp:
         json_lines = islice(fp, start_line, stop_line)
         review_jsons = [json.loads(line) for line in json_lines]
     return review_jsons
 
-"""
-Helper function to join review tokens into a single string.
-"""
 def join_tokens(token_list):
+    """
+    Helper function to join review tokens into a single string.
+    """
     return "".join(token_list)
 
-"""
-Call the Google Cloud Translate API to translate a single review-summary pair.
-"""
+
 def translate_json(json, translator):
+    """
+    Call the Google Cloud Translate API to translate a single review-summary pair.
+    """
     item_id = json["item_id"]
     summary = join_tokens(json["hq_tokens"])
     reviews = json["lq_tokens_list"]
@@ -44,10 +45,10 @@ def translate_json(json, translator):
     translated_reviews = [review["translatedText"] for review in translated_reviews]
     return item_id, translated_reviews, translated_summary
 
-"""
-Translate a list of review-summary JSONs and create a dataframe with the results.
-"""
 def translate_reviews(review_jsons):
+    """
+    Translate a list of review-summary JSONs and create a dataframe with the results.
+    """
     ids, reviews, summaries = [], [], []
     translator = translate.Client()
     print("Now translating reviews...")
@@ -61,11 +62,12 @@ def translate_reviews(review_jsons):
     result_df = result_df[["id", "summary", "review_str"]]
     return result_df
 
-"""
-Download raw data from GCS bucket. Use this function if working in a VM without a mounted 
-bucket, or if you would like to get a clean copy of the raw data.
-"""
+
 def download_data():
+    """
+    Download raw data from GCS bucket. Use this function if working in a VM without a mounted 
+    bucket, or if you would like to get a clean copy of the raw data.
+    """
     bucket_name = GCS_BUCKET_NAME
     print("Downloading data from " + str(bucket_name))
     
@@ -85,11 +87,12 @@ def download_data():
             local_file_path = os.path.join(dataset_folder, filename)
             blob.download_to_filename(local_file_path)
 
-"""
-Upload data to GCP bucket after preprocessing. Use this function if working in a VM without a mounted 
-bucket. 
-"""
+
 def upload_data(output_file_path):
+    """
+    Upload data to GCP bucket after preprocessing. Use this function if working in a VM without a mounted 
+    bucket. 
+    """
     bucket_name = GCS_BUCKET_NAME
     print("Uploading data to " + str(bucket_name))
 
