@@ -332,7 +332,6 @@ def main(args):
         output_dir=os.path.join(args.input_dir, "results"),
         evaluation_strategy="epoch",
         save_strategy="epoch",
-        save_total_limit = 5,
         report_to="wandb" if args.wandb else None,
         learning_rate=args.lr,
         per_device_train_batch_size=args.batch_size,
