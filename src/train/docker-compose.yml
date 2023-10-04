@@ -7,7 +7,6 @@ services:
     train-primera:
         image: train-primera
         container_name: train-primera
-        privileged: true
         volumes:
             - ../../../secrets/:/secrets
             - ../docker-volumes/training-data/:/app/data
