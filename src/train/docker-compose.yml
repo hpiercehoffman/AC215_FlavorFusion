@@ -9,16 +9,15 @@ services:
         container_name: train-primera
         volumes:
             - ../../../secrets/:/secrets
-            - ../docker-volumes/lsars-data/:/app/data
-            - ../docker-volumes/notebooks/:/app/notebooks
+            - ../docker-volumes/training-data/:/app/data
         ports:
             - 8888:8888
         environment:
             GOOGLE_APPLICATION_CREDENTIALS: /secrets/flavor-fusion-service.json
             GCP_PROJECT: "flavor-fusion"
             GCP_ZONE: "us-central1-a"
-            GCS_BUCKET_NAME: "lsars-data"
-            environment:
+            GCS_LSARS_BUCKET: "lsars-data"
+            GCS_MODEL_BUCKET: "primera-training"
             JUPYTER_ENABLE_LAB: "yes"
             JUPYTER_TOKEN: "docker"
         deploy:

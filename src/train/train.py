@@ -30,7 +30,7 @@ from transformers import (
 
 
 def download_data(local_folder):
-    GCS_BUCKET_NAME = os.environ["GCS_BUCKET_NAME"]
+    GCS_BUCKET_NAME = os.environ["GCS_DATA_BUCKET"]
     
     bucket_name = GCS_BUCKET_NAME
     print("Downloading data from " + str(bucket_name))
