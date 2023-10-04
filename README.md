@@ -149,14 +149,14 @@ To run this script, you must activate the `train` docker container. Once you are
 - `--download`: Flag to indicate that the preprocessed LSARS data should be downloaded from our GCS bucket before model training. This flag is needed if running the training script for the first time in a new GCP VM.
 - `--wandb`: Flag to indicate whether WandB should be used for logging. If this flag is active, you will be prompted to enter a WandB API key at the start of the run. Alternately, you can run `wandb login` before running the training script.
 - `--streaming`: Whether to stream data during model training. Streaming uses the [streaming functionality](https://huggingface.co/docs/datasets/stream) of Huggingface Transformers. This functionality is similar to TF Data.
-- `test_ratio`: Proportion of the dataset to use for evaluation.
-- `k_top_longest`: Maximum number of reviews to use from each data point. To decrease the demand on GPU RAM, we subsample the reviews from each data point. When subsampling, we preferentially select the longest reviews, since these are more likely to be high-quality reviews which are reflected in the summary review.
-- `max_docs_per_review`: Data augmentation option for splitting each data point into multiple new data points. For example, if `k_top_longest` is set to 20 and `max_docs_per_review` is set to 5, each data point will be subsampled to 20 reviews, then split into 4 new data points, each of which contains 5 reviews and one summary. To run without data augmentation, set `k_top_longest` and `max_docs_per_review` to the same value.
-- `num_processes`: Number of processes used when constructing the Dataset object from the preprocessed data files.
-- `max_source_length`: Maximum number of tokens for each set of reviews being summarized. This number refers to the length of the entire review group, rather than the length of individual reviews in the group. Tokens beyond this length will be truncated.
-- `max_target_length`: Maximum number of tokens for each summary review. Tokens beyond this length will be truncated.
-- `subset_dataset_to`: Number of data points to use if not training on the entire dataset; this is primarily a debugging option when checking if the training script works.
-- `lr`: Learning rate for training. We train with a lower learning rate when using pre-trained weights, since the model doesn't have to start from a random initialization.
+- `--test_ratio`: Proportion of the dataset to use for evaluation.
+- `--k_top_longest`: Maximum number of reviews to use from each data point. To decrease the demand on GPU RAM, we subsample the reviews from each data point. When subsampling, we preferentially select the longest reviews, since these are more likely to be high-quality reviews which are reflected in the summary review.
+- `--max_docs_per_review`: Data augmentation option for splitting each data point into multiple new data points. For example, if `k_top_longest` is set to 20 and `max_docs_per_review` is set to 5, each data point will be subsampled to 20 reviews, then split into 4 new data points, each of which contains 5 reviews and one summary. To run without data augmentation, set `k_top_longest` and `max_docs_per_review` to the same value.
+- `--num_processes`: Number of processes used when constructing the Dataset object from the preprocessed data files.
+- `--max_source_length`: Maximum number of tokens for each set of reviews being summarized. This number refers to the length of the entire review group, rather than the length of individual reviews in the group. Tokens beyond this length will be truncated.
+- `--max_target_length`: Maximum number of tokens for each summary review. Tokens beyond this length will be truncated.
+- `--subset_dataset_to`: Number of data points to use if not training on the entire dataset; this is primarily a debugging option when checking if the training script works.
+- `--lr`: Learning rate for training. We train with a lower learning rate when using pre-trained weights, since the model doesn't have to start from a random initialization.
 - `batch_size`: Number of data points to be processed in each batch.
 - `--num_train_epochs`: Number of epochs to train for.
 
