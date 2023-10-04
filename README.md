@@ -88,12 +88,19 @@ This directory is currently empty, but will be used to store code which doesn't 
 This directory contains our reports from past milestones:
 - [Milestone 2](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/reports/milestone2.md): Data preprocessing, Label Studio, and DVC.
 
-### References ###  
+### references ###  
 (add info here)
 
 ## Experiment Tracking ##
+Our Weights and Biases page contains two completed training runs, each lasting 10-12 hours. The PRIMERA model has a long training time when run on a single GPU, so each of these runs only covers a few epochs. We will use longer training runs to generate a final set of model weights for the LSARS dataset.
 
+Below we show a view of the WandB dashboard for evaluation metrics. Our most relevant evaluation metric is the (ROUGE score)[https://clementbm.github.io/theory/2021/12/23/rouge-bleu-scores.html#rouge], a NLP metric which measures similarity between the input reviews and the generated summary.
 
+![Evaluation metrics](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/images/eval_metrics.png)
+
+We also show the loss curves on the training set. We use WandB's plotting features to apply mild smoothing, making it easier to observe the overall trend of the loss curves.
+
+![Training loss curves](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/images/train_loss_smoothed.png)
 
 ## Serverless Training ##
 
