@@ -115,6 +115,25 @@ We built our data pipeline in Milestone 2. Our data pipeline uses DVC and Label 
 
 ### GCP VM setup ###
 
+After initial tests in our local environment, we deployed our training script on a GCP VM. We used machine type `g2-standard-4` with the following specs:
+- 1 Nvidia L4 GPU with 24GB of GPU RAM
+- 4 vCPUs
+- 16GB CPU RAM
+- 200GB storage space (adjustable)
+- Debian OS with CUDA and Docker pre-installed (boot option offered for GPU VMs)
+
+We selected a **spot VM** for affordability. Setting up the VM is fairly straightforward. We followed these steps:
+- Create the VM from Google Cloud Console - Compute Engine. Wait for the instance to start.
+- Generate SSH keys for Google Cloud on local machine: `gcloud compute config-ssh`
+- SSH to the VM from local machine: `gcloud compute ssh --project <our_project_id> --zone us-central1-a <vm_instance_name> -- -L 8080:localhost:8080`
+- Install Nvidia drivers when prompted. Run `nvidia-smi` to verify GPU is available.
+- Once connected to the VM, clone our [project repo](https://github.com/hpiercehoffman/AC215_FlavorFusion/tree/milestone3) and checkout the `milestone3` branch.
+- The OS comes with Docker pre-installed, but not Docker Compose. Therefore, we need to follow [these instructions](https://docs.docker.com/engine/install/debian/#install-using-the-repository) for installing Docker packages on Debian.
+- Build the Docker container for model training on the VM.
+- To allow model training to run without keeping the SSH connection open, launch a [tmux session](https://tmuxcheatsheet.com/). Tmux is a "terminal multiplexer" which decouples a session from the terminal window, allowing it to run in the background. The command to launch a session is `tmux new -s <session_name>`. 
+- You should now be inside your tmux session. From here, launch the training container. Inside the container, run `wandb login`. Enter [wandb API key](https://docs.wandb.ai/quickstart) when prompted.
+- You are now ready to run the model training script (see below for arguments). Once the script is running, use `Ctrl b + d` to detach from the tmux session. You can now exit the SSH connection and the model will continue to train as long as the VM is still running.
+
 ### Running the training Docker container ###   
 The Dockerfile for model training can be run via the `docker-shell.sh` script inside the container. To run this container, do the following:
 - Clone the repository and checkout the `milestone3` branch
