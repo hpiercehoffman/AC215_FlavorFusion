@@ -56,22 +56,40 @@ In this project, we aim to build an app that captures cultural differences in Go
 
 ## Milestone 3 Contents ##
 
-The focus of this milestone is model training. For information on data preprocessing, see our [Milestone 2 report](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/reports/milestone2.md).
+The focus of this milestone is model training. For information on data preprocessing, see our [Milestone 2 report](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/reports/milestone2.md). Data preprocessing takes place in the **preprocess_google** and **preprocess_lsars** Docker containers.
 
 ### train ###
-This container trains the [PRIMERA model](https://github.com/allenai/PRIMER) on the [LSARS dataset](https://github.com/ScarletPan/LSARS). We use 5,000 preprocessed and translated data points which we generated for Milestone 2. Each data point contains **10-40 product reviews** and **one summary** which captures information from all of the reviews.
+This container is responsible for training the [PRIMERA model](https://github.com/allenai/PRIMER) on the [LSARS dataset](https://github.com/ScarletPan/LSARS). 
 
+The inputs to this container are the following:
+- 5,000 preprocessed and translated LSARS data points which we generated for Milestone 2, each of which contains:   
+    - A unique identifier   
+    - 10-40 product reviews   
+    - One summary review which captures information from all of the reviews
+- Training parameters
+- Secrets file (contains service account credentials for Google Cloud)
 
+The output of this container is a file (`pytorch_model.bin`) containing trained model weights. The weight file for each training run is automatically uploaded to Weights and Biases (WandB) at the end of the run.
 
+This container holds the following files:
+1. `src/train/train.py` This script trains the PRIMERA model on the LSARS dataset. The script provides options for data augmentation, data streaming, and data downloading from our GCP bucket, as well as standard training parameters such as learning rate and batch size. WandB tracking is integrated into the script, including model upload to WandB at the end of a training run. In our initial runs shown in this milestone, we use pre-trained weights from a version of PRIMERA trained on the [Multi-News dataset](https://huggingface.co/datasets/multi_news). This allows us to leverage transfer learning. In later training runs, we will experiment with using pre-trained weights for only some layers of the model. The PRIMERA model is [hosted](https://huggingface.co/allenai/PRIMERA/tree/main) on Huggingface.
+2. `src/train/Dockerfile` This docker sets up a `pipenv` virtual environment for model training. In the file, we use our service account to connect to Google Cloud. We then create a user named `app` and install the required python packages from `src/preprocess_google/Pipfile`. Key packages used in model training include [Pytorch](https://pytorch.org/), [Transformers](https://huggingface.co/docs/transformers/index), and [NLTK](https://www.nltk.org/).
+3. `src/train/docker-shell.sh` This script sets up a network so the Docker container can communicate with the outside world via ports. Next, the script builds our Docker container and uses `src/train/docker-compose.yml` to set up the full container environment. In `src/train/docker-compose.yml`, we specify GPU capabilities so the Docker container can take advantage of running on a VM with a GPU.
+
+We ran this container inside a GCP VM with a Nvidia L4 GPU. Due to the large model size, an L4 GPU with 24GB of GPU RAM is required for training. We provide detailed instructions for VM setup and model training in the [Setup Notes](https://github.com/hpiercehoffman/AC215_FlavorFusion/edit/milestone3/README.md#setup-notes) section below.
 
 ### docker-volumes ###
-This directory is mounted to both the `preprocess_google` and `preprocess_lsars` Docker containers in the `docker-compose.yml` file for each container. This directory contains data (not tracked on Github) as well as notebooks which may be edited inside the Docker container.
+This directory is mounted to the `train` Docker container in `src/train/docker-compose.yml`. The `docker-volumes/training-data` directory appears inside the Docker container as `/app/data`. Users may specify this directory as a data download and/or model output directory via parameters to the `train.py` script. This permits the Docker container to access the filesystem of the host VM, allowing downloaded data files and model result files to be saved on the VM even after the Docker container is no longe running.
 
-### Notebooks ###    
+### notebooks ###    
 This directory is currently empty, but will be used to store code which doesn't belong to a specific container, such as reports, insights, or visualizations.
 
+### reports ###
+This directory contains our reports from past milestones:
+- [Milestone 2](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/reports/milestone2.md): Data preprocessing, Label Studio, and DVC.
+
 ### References ###  
-This directory is currently empty, but will be used to store code from the [PRIMERA model](https://github.com/allenai/PRIMER).
+(add info here)
 
 --------
 # Setup Notes #
