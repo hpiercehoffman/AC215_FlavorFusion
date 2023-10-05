@@ -85,7 +85,7 @@ This container holds the following files:
 1. `src/train/train.py` This script trains the PRIMERA model on the LSARS dataset. The script provides options for data augmentation, data streaming, and data downloading from our GCP bucket, as well as standard training parameters such as learning rate and batch size. WandB tracking is integrated into the script, including model upload to WandB at the end of a training run. In our initial runs shown in this milestone, we use pre-trained weights from a version of PRIMERA trained on the [Multi-News dataset](https://huggingface.co/datasets/multi_news). This allows us to leverage transfer learning. In later training runs, we will experiment with using pre-trained weights for only some layers of the model. The PRIMERA model is [hosted](https://huggingface.co/allenai/PRIMERA/tree/main) on Huggingface.
 2. `src/train/Dockerfile` This docker sets up a `pipenv` virtual environment for model training. In the file, we use our service account to connect to Google Cloud. We then create a user named `app` and install the required python packages from `src/preprocess_google/Pipfile`. Key packages used in model training include [Pytorch](https://pytorch.org/), [Transformers](https://huggingface.co/docs/transformers/index), and [NLTK](https://www.nltk.org/).
 3. `src/train/docker-shell.sh` This script sets up a network so the Docker container can communicate with the outside world via ports. Next, the script builds our Docker container and uses `src/train/docker-compose.yml` to set up the full container environment. In `src/train/docker-compose.yml`, we specify GPU capabilities so the Docker container can take advantage of running on a VM with a GPU.
-4. `src/train/package-trainer.sh` This script creates a Python package for serverless training. We ultimately were not able to get a quota request approved for serverless training, but we set up the required infrastructure. See the **Serverless Training** section below for details.
+4. `src/train/package-trainer.sh` This script creates a Python package for serverless training. We ultimately were not able to get a quota request approved for serverless training, but we set up the required infrastructure. See the **Serverless Training** section below for details, including details on files in the `src/train/package` directory.
 
 We ran this container inside a GCP VM with a Nvidia L4 GPU. Due to the large model size, an L4 GPU with 24GB of GPU RAM is required for training. We provide detailed instructions for VM setup and model training in the [Setup Notes](https://github.com/hpiercehoffman/AC215_FlavorFusion/edit/milestone3/README.md#setup-notes) section below.
 
@@ -176,6 +176,8 @@ To run this script, you must activate the `train` docker container. Once you are
 - `--lr`: Learning rate for training. We train with a lower learning rate when using pre-trained weights, since the model doesn't have to start from a random initialization.
 - `--batch_size`: Number of data points to be processed in each batch.
 - `--num_train_epochs`: Number of epochs to train for.
+
+We adapted some functions in the training script from [this tutorial](https://gist.github.com/JohnGiorgi/8c7dcabd3ee8a362b9174c5d145029ab), which is also linked in our [references page](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/references/references.md).
 
 When training on a single Nvidia L4 GPU with a batch size of 1 and all data points subsampled to the longest 5 reviews with no data augmentation, each epoch takes about 2.25 hours.
 
