@@ -176,6 +176,7 @@ def main(args):
         os.environ["WANDB_PROJECT"]="FlavorFusion"
         os.environ["WANDB_LOG_MODEL"]="true"
         os.environ["WANDB_WATCH"]="false"
+        wandb.login(key=args.wandb_key)
         wandb.init(dir=args.input_dir)
     
     # Load pre-trained model, tokenizer and config files
@@ -351,6 +352,7 @@ if __name__ == "__main__":
     parser.add_argument('--download', action="store_true", help="Download processed LSARS data from GCS bucket")
     parser.add_argument('--wandb', action="store_true", default=False, help='Whether to use wandb for logging')
     parser.add_argument('--streaming', action="store_true", default=False, help='Whether to stream data')
+    parser.add_argument("--wandb_key", dest="wandb_key", default="16", type=str, help="WandB API Key")
 
     # Data processing args
     parser.add_argument('--test_ratio', type=float, default=0.05, help='Test ratio for splitting')

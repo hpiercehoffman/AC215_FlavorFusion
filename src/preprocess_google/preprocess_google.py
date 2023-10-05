@@ -10,11 +10,11 @@ from google.cloud import storage
 
 GCS_BUCKET_NAME = os.environ["GCS_BUCKET_NAME"]
 
-"""
-Download raw data from GCS bucket. Use this function if working in a VM without a mounted 
-bucket, or if you would like to get a clean copy of the raw data.
-"""
 def download_data():
+    """
+    Download raw data from GCS bucket. Use this function if working in a VM without a mounted 
+    bucket, or if you would like to get a clean copy of the raw data.
+    """
     bucket_name = GCS_BUCKET_NAME
     print("Downloading data from " + str(bucket_name))
     
@@ -39,11 +39,11 @@ def download_data():
                 reviews_file_path = local_file_path
     return reviews_file_path, metadata_file_path
 
-"""
-Upload data to GCP bucket after preprocessing. Use this function if working in a VM without a mounted 
-bucket. 
-"""
 def upload_data(output_file_path):
+    """
+    Upload data to GCP bucket after preprocessing. Use this function if working in a VM without a mounted 
+    bucket. 
+    """
     bucket_name = GCS_BUCKET_NAME
     print("Uploading data to " + str(bucket_name))
 
@@ -55,11 +55,12 @@ def upload_data(output_file_path):
     blob = bucket.blob(destination_blob_name)
     blob.upload_from_filename(output_file_path)
 
-"""
-Reads in the metadata json file containing business metadata and filters out only restaurants and their 
-relevant columns. 
-"""
+
 def make_metadata_df(fl):
+    """
+    Reads in the metadata json file containing business metadata and filters out only restaurants and their 
+    relevant columns. 
+    """
     parser = parse(fl)
     rest_records = []
     print('Processing metadata')
@@ -77,10 +78,10 @@ def make_metadata_df(fl):
                                              'relative_results', 'num_of_reviews'])
     return df
 
-"""
-Reads in the reviews json file containing all user reviews. Filters it according to the parameters. 
-"""
 def make_reviews_df(fl, min_char=0, max_char=10000):
+    """
+    Reads in the reviews json file containing all user reviews. Filters it according to the parameters. 
+    """
     parser = parse(fl)
     reviews = []
     print('Processing reviews data')

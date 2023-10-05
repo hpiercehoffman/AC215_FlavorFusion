@@ -26,16 +26,12 @@ def load_jsons(filepath, start_line, stop_line):
     return review_jsons
 
 def join_tokens(token_list):
-    """
-    Helper function to join review tokens into a single string.
-    """
+    """Helper function to join review tokens into a single string."""
     return "".join(token_list)
 
 
 def translate_json(json, translator):
-    """
-    Call the Google Cloud Translate API to translate a single review-summary pair.
-    """
+    """Call the Google Cloud Translate API to translate a single review-summary pair."""
     item_id = json["item_id"]
     summary = join_tokens(json["hq_tokens"])
     reviews = json["lq_tokens_list"]
@@ -46,9 +42,7 @@ def translate_json(json, translator):
     return item_id, translated_reviews, translated_summary
 
 def translate_reviews(review_jsons):
-    """
-    Translate a list of review-summary JSONs and create a dataframe with the results.
-    """
+    """Translate a list of review-summary JSONs and create a dataframe with the results."""
     ids, reviews, summaries = [], [], []
     translator = translate.Client()
     print("Now translating reviews...")
