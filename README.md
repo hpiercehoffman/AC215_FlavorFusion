@@ -113,17 +113,6 @@ We also show the loss curves on the training set. We use WandB's plotting featur
 
 ![Training loss curves](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/images/train_loss_smoothed.png)
 
-## Serverless Training ##
-We made a total of 9 GPU quota increase requests for Vertex AI API. These requests were made from two different projects over a five-day period, and included multiple US regions, GPU types, and quota values. We tried using a personal credit card as well as the APCOMP course credits. We also contacted Google support by email to follow up. However, none of our GPU quota increase requests have been approved at the time of this submisssion.
-
-We have created some basic infrastructure for serverless training, as shown in the `src/train/package` directory. This directory contains package metadata as well as a version of the training script which takes our WandB key as a command line argument. We also created a `src/train/package-trainer.sh` to package the training code and upload it to a GCS bucket.
-
-If approved for our GPU quotas, we could use the [Vertex AI console](https://console.cloud.google.com/vertex-ai/training/training-pipelines?project=flavor-fusion-399619) to submit a job based on this package. We tested this method, and the job submits successfully, but then fails because there is no available GPU quota. We could also use a command line script to submit jobs, as shown in the [in-class demo](https://github.com/dlops-io/model-training/tree/main).
-
-The screenshot below shows our failed serverless training job as well as the reason - insufficient quota.
-
-![Serverless training failure](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/images/serverless_no_quota.png)
-
 ## Data Pipeline ##
 We built our data pipeline in Milestone 2. Our data pipeline uses DVC and Label Studio, as well as preprocessing scripts, to convert data from the **LSARS** and **Google Reviews** datasets into a convenient format for model training. For more information on our data pipeline, including examples showing how to download specific data versions, please see the [Setup Notes](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/reports/milestone2.md#setup-notes) section of our Milestone 2 report.
 
@@ -180,6 +169,17 @@ To run this script, you must activate the `train` docker container. Once you are
 We adapted some functions in the training script from [this tutorial](https://gist.github.com/JohnGiorgi/8c7dcabd3ee8a362b9174c5d145029ab), which is also linked in our [references page](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/references/references.md).
 
 When training on a single Nvidia L4 GPU with a batch size of 1 and all data points subsampled to the longest 5 reviews with no data augmentation, each epoch takes about 2.25 hours.
+
+## Serverless Training ##
+We made a total of 9 GPU quota increase requests for Vertex AI API. These requests were made from two different projects over a five-day period, and included multiple US regions, GPU types, and quota values. We tried using a personal credit card as well as the APCOMP course credits. We also contacted Google support by email to follow up. However, none of our GPU quota increase requests have been approved at the time of this submisssion.
+
+We have created some basic infrastructure for serverless training, as shown in the `src/train/package` directory. This directory contains package metadata as well as a version of the training script which takes our WandB key as a command line argument. We also created a `src/train/package-trainer.sh` to package the training code and upload it to a GCS bucket.
+
+If approved for our GPU quotas, we could use the [Vertex AI console](https://console.cloud.google.com/vertex-ai/training/training-pipelines?project=flavor-fusion-399619) to submit a job based on this package. We tested this method, and the job submits successfully, but then fails because there is no available GPU quota. We could also use a command line script to submit jobs, as shown in the [in-class demo](https://github.com/dlops-io/model-training/tree/main).
+
+The screenshot below shows our failed serverless training job as well as the reason - insufficient quota.
+
+![Serverless training failure](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/images/serverless_no_quota.png)
 
 # References #
 
