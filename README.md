@@ -40,7 +40,15 @@ Project Organization
                 ├── Pipfile.lock
                 ├── train.py
                 ├── docker-compose.yml
-                └── docker-shell.sh
+                ├── docker-shell.sh
+                ├── package-trainer.sh
+                └── package
+                    ├── setup.cfg
+                    ├── setup.py
+                    ├── PKG-INFO
+                    └── trainer
+                        ├── __init__.py
+                        └── task.py
 
 --------
 # Milestone 3 Overview
@@ -105,6 +113,14 @@ We also show the loss curves on the training set. We use WandB's plotting featur
 ![Training loss curves](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/images/train_loss_smoothed.png)
 
 ## Serverless Training ##
+We made a total of 9 GPU quota increase requests for Vertex AI API. These requests were made from two different projects over a five-day period, and included multiple US regions, GPU types, and quota values. We tried using a personal credit card as well as the APCOMP course credits. We also contacted Google support by email to follow up. However, none of our GPU quota increase requests have been approved at the time of this submisssion.
+
+We have created some basic infrastructure for serverless training, as shown in the `src/train/package` directory. This directory contains package metadata as well as a version of the training script which takes our WandB key as a command line argument. We also created a `src/train/package-trainer.sh` to package the training code and upload it to a GCS bucket.
+
+If approved for our GPU quotas, we could use the [Vertex AI console](https://console.cloud.google.com/vertex-ai/training/training-pipelines?project=flavor-fusion-399619) to submit a job based on this package. We tested this method, and the job submits successfully, but then fails because there is no available GPU quota. We could also use a command line script to submit jobs, as shown in the [in-class demo](https://github.com/dlops-io/model-training/tree/main).
+
+The screenshot below shows our failed serverless training job as well as the reason - insufficient quota.
+
 
 
 ## Data Pipeline ##
