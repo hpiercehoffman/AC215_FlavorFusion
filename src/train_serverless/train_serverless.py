@@ -171,9 +171,6 @@ def length_of_iterable_dataset(dataset):
 
 def main(args):
     
-    print("Now checking GPU availability")
-    print(torch.cuda.is_available())
-    
     os.environ["GCS_DATA_BUCKET"] = args.gcs_bucket_name
     
     # You will be prompted for WandB API key if you haven't run "wandb auth"

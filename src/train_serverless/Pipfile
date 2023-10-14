@@ -1,0 +1,25 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[packages]
+dvc = "*"
+jupyterlab = "*"
+pandas = "*"
+numpy = "*"
+google-cloud-storage = "*"
+google-api-python-client = "*"
+torch = "*"
+transformers = "*"
+datasets = "*"
+nltk = "*"
+tqdm = "*"
+rouge-score = "*"
+wandb = "*"
+accelerate = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.9"
