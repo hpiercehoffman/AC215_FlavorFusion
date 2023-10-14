@@ -11,11 +11,12 @@ REQUIRED_PACKAGES = ["wandb<=0.15.11",
                      "datasets<=2.14.5",
                      "nltk<=3.8.1",
                      "tqdm<=4.66.1",
-                     "rouge-score<=0.1.2"]
+                     "rouge-score<=0.1.2",
+                     "accelerate>=0.20.1"]
 
 setup(
     name="train-primera",
-    version="0.0.3",
+    version="0.0.4",
     install_requires=REQUIRED_PACKAGES,
     packages=find_packages(),
     description="PRIMERA mode training",
