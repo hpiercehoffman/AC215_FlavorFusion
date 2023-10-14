@@ -171,6 +171,8 @@ def length_of_iterable_dataset(dataset):
 
 def main(args):
     
+    os.environ["GCS_DATA_BUCKET"] = args.gcs_bucket_name
+    
     # You will be prompted for WandB API key if you haven't run "wandb auth"
     if args.wandb:
         os.environ["WANDB_PROJECT"]="FlavorFusion"
@@ -353,6 +355,7 @@ if __name__ == "__main__":
     parser.add_argument('--wandb', action="store_true", default=False, help='Whether to use wandb for logging')
     parser.add_argument('--streaming', action="store_true", default=False, help='Whether to stream data')
     parser.add_argument("--wandb_key", dest="wandb_key", default="16", type=str, help="WandB API Key")
+    parser.add_argument("--gcs_bucket_name", type=str, help='Path to GCS bucket to download data')
 
     # Data processing args
     parser.add_argument('--test_ratio', type=float, default=0.05, help='Test ratio for splitting')
