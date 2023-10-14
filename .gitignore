@@ -12,6 +12,8 @@ src/docker-volumes/google-data
 !src/docker-volumes/lsars-data*.dvc
 !src/docker-volumes/google-data*.dvc
 
+# Model training files
+src/train/trainer.tar.gz
 
 # Jupyter files
 *.ipynb_checkpoints*
