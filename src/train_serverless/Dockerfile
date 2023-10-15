@@ -43,5 +43,5 @@ ENV PATH="${PATH}:/home/app/.local/bin"
 ENV Path="${PATH}:/home/app/.local/lib/python3.9/site-packages"
 
 # Entry point
-ENTRYPOINT ["python","train_serverless.py"]
+ENTRYPOINT ["pipenv", "run", "python","train_serverless.py"]
 
