@@ -1,47 +1,22 @@
-# We will use the official Debian-hosted Python image.
-FROM python:3.9-slim-buster
+FROM nvidia/cuda:11.0.3-devel-centos7
 
-ARG DEBIAN_PACKAGES="build-essential git curl"
-ENV DEBIAN_FRONTEND=noninteractive
-ENV LANG=C.UTF-8
+RUN yum -y update
+RUN yum -y install epel-release
+RUN yum -y install python-pip
+RUN yum install -y gcc openssl-devel bzip2-devel libffi-devel zlib-devel wget
+RUN wget https://www.python.org/ftp/python/3.9.6/Python-3.9.6.tgz
 
-# Tell pipenv where the shell is. 
-# This allows us to use "pipenv shell" as a container entry point.
-ENV PYENV_SHELL=/bin/bash
-
-# Authenticate via the flavor-fusion service account. If using 
-# gcloud CLI, these credentials are not needed.
-#ENV GOOGLE_APPLICATION_CREDENTIALS=secrets/flavor-fusion-service.json
-
-# Ensure we have an up to date baseline and install dependencies. 
-RUN set -ex; \
-    for i in $(seq 1 8); do mkdir -p "/usr/share/man/man${i}"; done && \
-    apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends $DEBIAN_PACKAGES && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* && \
-    pip install --no-cache-dir --upgrade pip && \
-    pip install pipenv && \
-    useradd -ms /bin/bash app -d /home/app -u 1000 -p "$(openssl passwd -1 Passw0rd)" && \
-    mkdir -p /app && \
-    chown app:app /app
-
-USER app
+RUN mkdir /app
 WORKDIR /app
+ADD . /app
 
-# Add Pipfile, Pipfile.lock
-ADD --chown=app:app Pipfile Pipfile.lock /app/
-RUN pipenv install
-RUN pipenv sync
+RUN tar -xvf Python-3.9.6.tgz
+RUN cd Python-3.9.6 && ./configure --enable-optimizations
+RUN sudo make && sudo make altinstall
 
-#RUN pip install -r requirements.txt
-
-# Source code
-ADD --chown=app:app . /app
-ENV PATH="${PATH}:/home/app/.local/bin"
-ENV Path="${PATH}:/home/app/.local/lib/python3.9/site-packages"
+RUN cd /app
+RUN pip install -r requirements.txt
 
 # Entry point
-ENTRYPOINT ["pipenv", "run", "python","train_serverless.py"]
+ENTRYPOINT ["python","train_serverless.py"]
 
