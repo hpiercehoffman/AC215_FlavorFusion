@@ -185,9 +185,9 @@ def main(args):
         wandb.init(dir=args.input_dir)
     
     # Load pre-trained model, tokenizer and config files
-    tokenizer = AutoTokenizer.from_pretrained('allenai/PRIMERA')
-    config = AutoConfig.from_pretrained('allenai/PRIMERA')
-    model = AutoModelForSeq2SeqLM.from_pretrained('allenai/PRIMERA')
+    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+    config = AutoConfig.from_pretrained(args.model_name)
+    model = AutoModelForSeq2SeqLM.from_pretrained(args.model_name)
     model.resize_token_embeddings(len(tokenizer))
     
     if args.download:
@@ -373,6 +373,7 @@ if __name__ == "__main__":
     parser.add_argument('--lr', type=float, default=2e-5, help='Learning rate for training')
     parser.add_argument('--batch_size', type=int, default=1, help='Batch size for training')
     parser.add_argument('--num_train_epochs', type=int, default=20, help='Total number of epochs for training')
+    parser.add_argument('--model_name', type=str,default='allenai/PRIMERA', help='Name of pretrained model to use')
     
     args = parser.parse_args()
     
