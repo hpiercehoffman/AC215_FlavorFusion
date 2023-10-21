@@ -78,7 +78,7 @@ This directory is currently empty, but will be used to store code which doesn't 
 ### reports ###
 This directory contains our reports from past milestones:
 - [Milestone 2](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/reports/milestone2.md): Data preprocessing, Label Studio, and DVC.
-- [Milestone 3 report](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/reports/milestone3.md): Model training, VM setup, and experiment tracking. 
+- [Milestone 3](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/reports/milestone3.md): Model training, VM setup, and experiment tracking. 
 
 ### references ###  
 This directory contains information on models, datasets, and other external references used in this project. References are detailed in [references.md](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/references/references.md).
@@ -90,34 +90,10 @@ This directory contains information on models, datasets, and other external refe
 
 
 ### Serverless Training ###   
-The Dockerfile for model training can be run via the `docker-shell.sh` script inside the container. To run this container, do the following:
-- Clone the repository and checkout the `milestone3` branch
-- `cd src/train`
-- `chmod 777 docker-shell.sh`
-- `./docker-shell.sh`
-The Dockerfile for model training will build and you will be dropped into a shell prompt as `app` user. From there, you can kick off a model training run using the `train.py` script.
 
-### Running train_serverless.py script ###
-To run this script, you must activate the `train` docker container. Once you are inside the container, you can run the script with the following arguments:
-- `--input_dir`: Path to directory containing the preprocessed LSARS data files. If the `--download` flag is specified, files will be downloaded from our GCS bucket to this repository.
-- `--model_output_path`: Path to directory where model weights and reports will be saved at the end of the training run. If using WandB, model outputs will also be uploaded to our WandB project.
-- `--download`: Flag to indicate that the preprocessed LSARS data should be downloaded from our GCS bucket before model training. This flag is needed if running the training script for the first time in a new GCP VM.
-- `--wandb`: Flag to indicate whether WandB should be used for logging. If this flag is active, you will be prompted to enter a WandB API key at the start of the run. Alternately, you can run `wandb login` before running the training script.
-- `--streaming`: Whether to stream data during model training. Streaming uses the [streaming functionality](https://huggingface.co/docs/datasets/stream) of Huggingface Transformers. This functionality is similar to TF Data.
-- `--test_ratio`: Proportion of the dataset to use for evaluation.
-- `--k_top_longest`: Maximum number of reviews to use from each data point. To decrease the demand on GPU RAM, we subsample the reviews from each data point. When subsampling, we preferentially select the longest reviews, since these are more likely to be high-quality reviews which are reflected in the summary review.
-- `--max_docs_per_review`: Data augmentation option for splitting each data point into multiple new data points. For example, if `k_top_longest` is set to 20 and `max_docs_per_review` is set to 5, each data point will be subsampled to 20 reviews, then split into 4 new data points, each of which contains 5 reviews and one summary. To run without data augmentation, set `k_top_longest` and `max_docs_per_review` to the same value.
-- `--num_processes`: Number of processes used when constructing the Dataset object from the preprocessed data files.
-- `--max_source_length`: Maximum number of tokens for each set of reviews being summarized. This number refers to the length of the entire review group, rather than the length of individual reviews in the group. Tokens beyond this length will be truncated.
-- `--max_target_length`: Maximum number of tokens for each summary review. Tokens beyond this length will be truncated.
-- `--subset_dataset_to`: Number of data points to use if not training on the entire dataset; this is primarily a debugging option when checking if the training script works.
-- `--lr`: Learning rate for training. We train with a lower learning rate when using pre-trained weights, since the model doesn't have to start from a random initialization.
-- `--batch_size`: Number of data points to be processed in each batch.
-- `--num_train_epochs`: Number of epochs to train for.
 
-We adapted some functions in the training script from [this tutorial](https://gist.github.com/JohnGiorgi/8c7dcabd3ee8a362b9174c5d145029ab), which is also linked in our [references page](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/references/references.md).
+### Cloud Function Setup ###
 
-When training on a single Nvidia L4 GPU with a batch size of 1 and all data points subsampled to the longest 5 reviews with no data augmentation, each epoch takes about 2.25 hours.
 
 # References #
 
