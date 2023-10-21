@@ -336,8 +336,8 @@ def main(args):
     
     
     # Generate training arguments 
-    training_args = Seq2SeqTrainingArguments(
-        output_dir=os.path.join(args.input_dir, "results")
+    training_args = Seq2SeqTrainingArguments( 
+        output_dir=os.path.join(args.input_dir, "results"),
         evaluation_strategy="epoch",
         save_strategy="epoch",
         report_to="wandb" if args.wandb else None,
@@ -404,7 +404,6 @@ if __name__ == "__main__":
     parser.add_argument('--wandb_key', dest="wandb_key", default="16", type=str, help="WandB API Key")
     parser.add_argument('--gcs_bucket_name', type=str, help='Path to GCS bucket to download data')
 
-    
     # Data processing args
     parser.add_argument('--test_ratio', type=float, default=0.05, help='Test ratio for splitting')
     parser.add_argument('--max_docs_per_review', type=int, default=5, help='Maximum number of reviews per data point')
@@ -420,6 +419,7 @@ if __name__ == "__main__":
     parser.add_argument('--num_train_epochs', type=int, default=20, help='Total number of epochs for training')
     parser.add_argument('--quantize', action="store_true", help='Whether to perform quantization on the model during the training')
     parser.add_argument('--prune', action="store_true", help='Whether to perform pruning on the model during the training')
+    parser.add_argument('--model_name', type=str,default='allenai/PRIMERA', help='Name of pretrained model to use')
     
     args = parser.parse_args()
     
