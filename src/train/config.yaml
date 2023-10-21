@@ -1,0 +1,23 @@
+workerPoolSpecs:
+  - machineSpec:
+      machineType: g2-standard-4
+      acceleratorType: NVIDIA_L4
+      acceleratorCount: 1
+    replicaCount: 1
+    containerSpec:
+      imageUri: us-central1-docker.pkg.dev/flavor-fusion-399619/flavor-fusion/cuda-train:latest
+      args:
+      - --input_dir=./ 
+      - --model_output_path=./
+      - --max_source_length=4096 
+      - --max_target_length=1024
+      - --wandb
+      - --download
+      - --num_train_epochs=20
+      - --k_top_longest=5
+      - --test_ratio=0.1
+      - --wandb_key=$WANDB_KEY
+      - --gcs_bucket_name=lsars-data
+      - --num_processes=4
+      - --model_name=allenai/PRIMERA
+      - --prune
