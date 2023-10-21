@@ -189,6 +189,7 @@ def main(args):
         os.environ["WANDB_WATCH"]="false"
         wandb.login(key=args.wandb_key)
         
+    
     # Load pre-trained model, tokenizer and config files
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     config = AutoConfig.from_pretrained(args.model_name)

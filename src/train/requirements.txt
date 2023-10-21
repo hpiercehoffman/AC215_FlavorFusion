@@ -10,6 +10,7 @@ tqdm
 rouge-score
 wandb
 accelerate
-optimum
+optimum-intel
 neural-compressor
+onnx
 
