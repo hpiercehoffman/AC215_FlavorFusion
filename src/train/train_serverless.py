@@ -34,8 +34,6 @@ from transformers import (
 def download_data(local_folder):
     """Download preprocessed LSARS data from GCS bucket.
     """
-    from google.cloud import translate_v2 as translate
-    from google.cloud import storage
     GCS_BUCKET_NAME = os.environ["GCS_BUCKET_NAME"]
     
     bucket_name = GCS_BUCKET_NAME
