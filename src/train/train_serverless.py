@@ -34,9 +34,7 @@ from transformers import (
 def download_data(local_folder):
     """Download preprocessed LSARS data from GCS bucket.
     """
-    GCS_BUCKET_NAME = os.environ["GCS_BUCKET_NAME"]
-    
-    bucket_name = GCS_BUCKET_NAME
+    bucket_name = args.gcs_bucket_name
     print("Downloading data from " + str(bucket_name))
     
     # Clear existing dataset folders so we get a clean copy
@@ -184,8 +182,6 @@ def main(args):
     
     print("Now checking GPU availability")
     print(torch.cuda.is_available())
-
-    os.environ["GCS_DATA_BUCKET"] = args.gcs_bucket_name
     
     if args.wandb:
         os.environ["WANDB_PROJECT"]="FlavorFusion"
@@ -193,7 +189,6 @@ def main(args):
         os.environ["WANDB_WATCH"]="false"
         wandb.login(key=args.wandb_key)
         
-    
     # Load pre-trained model, tokenizer and config files
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     config = AutoConfig.from_pretrained(args.model_name)
