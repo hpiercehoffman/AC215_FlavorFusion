@@ -114,14 +114,45 @@ def sample_reviews(examples, max_docs_per_review=5, k_top_longest=20):
     return {'augmented_review_str': new_reviews, 'new_summary': new_summaries}
 
 
+def process_document(documents, doc_sep, max_source_length, tokenizer, DOCSEP_TOKEN_ID, PAD_TOKEN_ID):
+    input_ids_all=[]
+    for data in documents:
+        all_docs = data.split(doc_sep)[:-1]
+        for i, doc in enumerate(all_docs):
+            doc = doc.replace("\n", " ")
+            doc = " ".join(doc.split())
+            all_docs[i] = doc
+
+        #### concat with global attention on doc-sep
+        input_ids = []
+        for doc in all_docs:
+            input_ids.extend(
+                tokenizer.encode(
+                    doc,
+                    truncation=True,
+                    max_length=max_source_length // len(all_docs),
+                )[1:-1]
+            )
+            input_ids.append(DOCSEP_TOKEN_ID)
+        input_ids = (
+            [tokenizer.bos_token_id]
+            + input_ids
+            + [tokenizer.eos_token_id]
+        )
+        input_ids_all.append(torch.tensor(input_ids))
+    input_ids = torch.nn.utils.rnn.pad_sequence(
+        input_ids_all, batch_first=True, padding_value=PAD_TOKEN_ID
+    )
+    return input_ids
+
+
 def preprocess_function(examples, tokenizer, text_column, summary_column, max_source_length, max_target_length, 
                         padding="max_length", ignore_pad_token_for_loss=True, prefix=""):
-    """Data preprocessing function which is called for all data points in the 
-    training and test sets. This function performs truncation and data augmentation
-    based on input parameters, then tokenizes, pads, and generates a global attention mask
-    so the data is ready to be used in the PRIMERA model.
-    """
-    # Create lists of inputs and targets from data
+    
+    model_inputs = {}
+    PAD_TOKEN_ID = tokenizer.pad_token_id
+    DOCSEP_TOKEN_ID = tokenizer.convert_tokens_to_ids("<doc-sep>")
+    
     inputs, targets = [], []
     for i in range(len(examples[text_column])):
         if examples[text_column][i] and examples[summary_column][i]:
@@ -129,36 +160,37 @@ def preprocess_function(examples, tokenizer, text_column, summary_column, max_so
             targets.append(examples[summary_column][i])
 
     inputs = [prefix + inp for inp in inputs]
-
-    # Truncation based on parameters
-    inputs = [truncate_multi_doc(
-                text, doc_sep="|||||",
-                doc_sep_token=tokenizer.additional_special_tokens[0],
-                max_length=max_source_length, tokenizer=tokenizer)
-            for text in inputs]
-
-    # Tokenize inputs and targets
-    model_inputs = tokenizer(inputs, max_length=max_source_length, padding=padding, truncation=True)
+    
+    model_inputs['input_ids'] = process_document(inputs,
+                                                 doc_sep='|||||', 
+                                                 max_source_length=max_source_length,
+                                                 tokenizer=tokenizer, 
+                                                 DOCSEP_TOKEN_ID=DOCSEP_TOKEN_ID, 
+                                                 PAD_TOKEN_ID=PAD_TOKEN_ID)
 
     # Setup the tokenizer for targets
     with tokenizer.as_target_tokenizer():
         labels = tokenizer(targets, max_length=max_target_length, padding=padding, truncation=True)
 
-    # Convert pad tokens to -100 so the loss function ignores padding
+    # If we are padding here, replace all tokenizer.pad_token_id in the labels by -100 when we want to ignore
+    # padding in the loss.
     if padding == "max_length" and ignore_pad_token_for_loss:
         labels["input_ids"] = [
-            [(l if l != tokenizer.pad_token_id else -100) for l in label] for label in labels["input_ids"]]
+            [(l if l != tokenizer.pad_token_id else -100) for l in label] for label in labels["input_ids"]
+        ]
 
     model_inputs["labels"] = labels["input_ids"]
-
-    # Add a global attention mask to model inputs
-    global_attention_tokens = [tokenizer.bos_token, tokenizer.additional_special_tokens[0]]
-    model_inputs["global_attention_mask"] = get_global_attention_mask(
-        model_inputs.input_ids,
-        token_ids=tokenizer.convert_tokens_to_ids(global_attention_tokens),
-    )
-    #print(f"Using global attention on the following tokens: {global_attention_tokens}")
+    
+    global_attention_mask = torch.zeros_like(model_inputs['input_ids']).to(model_inputs['input_ids'])
+    
+    # put global attention on <s> token
+    global_attention_mask[:, 0] = 1
+    global_attention_mask[model_inputs['input_ids'] == DOCSEP_TOKEN_ID] = 1
+    
+    model_inputs["global_attention_mask"] = global_attention_mask
+    
     return model_inputs
+
 
 def postprocess_text(preds, labels):
     """Decode predictions after forward pass so we can do evaluation metrics."""
@@ -177,6 +209,28 @@ def length_of_iterable_dataset(dataset):
     for i in dataset:
         count+=1
     return count
+
+def inference(batch, model, tokenizer, summary_field):
+    input_ids = batch['input_ids']
+
+    # get the input ids and attention masks together
+    global_attention_mask = batch['global_attention_mask']
+    
+    generated_ids = model.generate(
+        input_ids=torch.tensor(input_ids).to(model.device),
+        global_attention_mask=torch.tensor(global_attention_mask).to(model.device),
+        use_cache=True,
+        max_length=100,
+        num_beams=1)
+    
+    generated_str = tokenizer.batch_decode(
+            generated_ids.tolist(), skip_special_tokens=True
+        )
+    result={}
+    result['generated_summaries'] = generated_str
+    result['gt_summaries']=batch[summary_field]
+    return result
+
 
 def main(args):
     
@@ -388,6 +442,24 @@ def main(args):
     if args.wandb:
         wandb.finish()
     
+    # Inference
+    if args.inference:
+        import random
+        random.seed(42)
+        
+        fn_kwargs = {'model': trainer.model, 'tokenizer': tokenizer, 'summary_field': 'new_summary'}
+        
+        data_idx = random.choices(range(len(test_dataset)), k=1)
+        test_dataset_small = test_dataset.select(data_idx)
+        results = test_dataset_small.map(inference, fn_kwargs=fn_kwargs, batched=True, batch_size=1)
+        
+        print('Ground-truth summary: ')
+        print(results[0]['gt_summaries'])
+        
+        print('Generated summary: ')
+        print(results[0]['generated_summaries'])
+        
+    
 
 if __name__ == "__main__":
     
@@ -404,6 +476,7 @@ if __name__ == "__main__":
     parser.add_argument('--streaming', action="store_true", default=False, help='Whether to stream data')
     parser.add_argument('--wandb_key', dest="wandb_key", default="16", type=str, help="WandB API Key")
     parser.add_argument('--gcs_bucket_name', type=str, help='Path to GCS bucket to download data')
+    parser.add_argument('--inference', action="store_true", help='Whether to do inference on one random test example after training')
 
     # Data processing args
     parser.add_argument('--test_ratio', type=float, default=0.05, help='Test ratio for splitting')
@@ -420,12 +493,10 @@ if __name__ == "__main__":
     parser.add_argument('--num_train_epochs', type=int, default=20, help='Total number of epochs for training')
     parser.add_argument('--quantize', action="store_true", help='Whether to perform quantization on the model during the training')
     parser.add_argument('--prune', action="store_true", help='Whether to perform pruning on the model during the training')
-    parser.add_argument('--model_name', type=str, default='allenai/PRIMERA', help='Hugginface Name or local path of pretrained model to use')
+    parser.add_argument('--model_name', type=str, default='allenai/PRIMERA-multinews', help='Hugginface Name or local path of pretrained model to use')
     parser.add_argument('--wandb_download_folder', default=None, help='Full locaton of the model on wandb to download')
     
     
     args = parser.parse_args()
     
     main(args)
-
-
