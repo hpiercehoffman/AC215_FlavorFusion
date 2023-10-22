@@ -188,7 +188,14 @@ def main(args):
         os.environ["WANDB_LOG_MODEL"]="true"
         os.environ["WANDB_WATCH"]="false"
         wandb.login(key=args.wandb_key)
-        
+    
+    if args.wandb_download_folder:
+        print('Fetching model from wandb')
+        run = wandb.init()
+        artifact = run.use_artifact(args.wandb_download_folder, type="model")
+        artifact_dir = artifact.download(root=args.input_dir)
+        print("Model downloaded from wandb to: ", artifact_dir)
+        args.model_name = artifact_dir
     
     # Load pre-trained model, tokenizer and config files
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
@@ -316,16 +323,15 @@ def main(args):
     if args.quantize:
         from optimum.intel import INCModelForSeq2SeqLM, INCSeq2SeqTrainer
         from neural_compressor import QuantizationAwareTrainingConfig
-        
+        print('Running quantization on the model')
         quantization_config = QuantizationAwareTrainingConfig()
     if args.prune:
         from optimum.intel import INCModelForSeq2SeqLM, INCSeq2SeqTrainer
         from neural_compressor import WeightPruningConfig
-        
-        pruning_config = WeightPruningConfig(pruning_type="magnitude",
-                                             start_step=0,
-                                             end_step=args.num_train_epochs,
-                                             target_sparsity=0.2,
+        print('Running pruning on the model')
+        pruning_config = WeightPruningConfig(start_step=0,
+                                             end_step=100,
+                                             target_sparsity=0.8,
                                              pruning_scope="local")
     
     
@@ -334,13 +340,13 @@ def main(args):
         output_dir=os.path.join(args.input_dir, "results"),
         evaluation_strategy="epoch",
         save_strategy="epoch",
+        load_best_model_at_end = False if (args.quantize or args.prune) else True,
         report_to="wandb" if args.wandb else None,
         learning_rate=args.lr,
         per_device_train_batch_size=args.batch_size,
         per_device_eval_batch_size=args.batch_size,
         weight_decay=0.01,
         save_total_limit=3,
-        load_best_model_at_end=True,
         num_train_epochs=args.num_train_epochs,
         max_steps=num_data_points//args.batch_size if args.streaming else -1,
         logging_steps=1,
@@ -350,6 +356,7 @@ def main(args):
     
     # Initialize main trainer 
     if (args.quantize or args.prune):
+        assert args.num_train_epochs == 1
         trainer = INCSeq2SeqTrainer(
             model=model,
             args=training_args,
@@ -413,7 +420,9 @@ if __name__ == "__main__":
     parser.add_argument('--num_train_epochs', type=int, default=20, help='Total number of epochs for training')
     parser.add_argument('--quantize', action="store_true", help='Whether to perform quantization on the model during the training')
     parser.add_argument('--prune', action="store_true", help='Whether to perform pruning on the model during the training')
-    parser.add_argument('--model_name', type=str,default='allenai/PRIMERA', help='Name of pretrained model to use')
+    parser.add_argument('--model_name', type=str, default='allenai/PRIMERA', help='Hugginface Name or local path of pretrained model to use')
+    parser.add_argument('--wandb_download_folder', default=None, help='Full locaton of the model on wandb to download')
+    
     
     args = parser.parse_args()
     
