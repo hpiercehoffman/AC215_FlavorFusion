@@ -210,6 +210,12 @@ def length_of_iterable_dataset(dataset):
         count+=1
     return count
 
+def get_model_size(model):
+    torch.save(model.state_dict(), "tmp.pt")
+    model_size = os.path.getsize("tmp.pt") / (1024*1024)
+    os.remove("tmp.pt")
+    return round(model_size, 2)
+
 def inference(batch, model, tokenizer, summary_field):
     input_ids = batch['input_ids']
 
@@ -250,12 +256,16 @@ def main(args):
         artifact_dir = artifact.download(root=args.input_dir)
         print("Model downloaded from wandb to: ", artifact_dir)
         args.model_name = artifact_dir
-    
+            
     # Load pre-trained model, tokenizer and config files
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
     config = AutoConfig.from_pretrained(args.model_name)
     model = AutoModelForSeq2SeqLM.from_pretrained(args.model_name)
     model.resize_token_embeddings(len(tokenizer))
+    
+    # Calculate base model size
+    if (args.quantize or args.prune):
+        base_model_size = get_model_size(model)
     
     # TODO: Have to check if this works
     if args.download:
@@ -390,7 +400,7 @@ def main(args):
     
     # Generate training arguments 
     training_args = Seq2SeqTrainingArguments( 
-        output_dir=os.path.join(args.input_dir, "results"),
+        output_dir=args.model_output_path,
         evaluation_strategy="epoch",
         save_strategy="epoch",
         load_best_model_at_end = False if (args.quantize or args.prune) else True,
@@ -434,18 +444,24 @@ def main(args):
     # Train
     train_result = trainer.train()
     
-    # Save model
-    trainer.save_model(args.model_output_path)
+    # Calculate optimized model size
+    if (args.quantize or args.prune):
+        opt_model_size = get_model_size(trainer.model)
+        print(f"The full-precision model size is {round(base_model_size)} MB while the optimized model one is {round(opt_model_size)} MB.")
+        print(f"The optimized model is {round(base_model_size / opt_model_size, 2)}x smaller than the full-precision one.")
+    
     
     # Close wandb and save artifacts
     if args.wandb:
+        if 'run' not in locals():
+            run = wandb.init()
         if args.prune:
             artifact = wandb.Artifact('pruned_model', type='model')
-            artifact.add_file(args.model_output_path)
+            artifact.add_dir(args.model_output_path)
             run.log_artifact(artifact)
         if args.quantize:
             artifact = wandb.Artifact('quantized_model', type='model')
-            artifact.add_file(args.model_output_path)
+            artifact.add_dir(args.model_output_path)
             run.log_artifact(artifact)
         wandb.finish()
     
