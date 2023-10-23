@@ -1,5 +1,5 @@
 export UUID=$(openssl rand -hex 6)
-export DISPLAY_NAME="primera_training_pruned_$UUID"
+export DISPLAY_NAME="primera_training_basic_pruned_$UUID"
 export GCP_REGION="us-east1" 
 
 export CMDARGS="--input_dir=./,\
@@ -15,7 +15,7 @@ export CMDARGS="--input_dir=./,\
 --gcs_bucket_name=lsars-data,\
 --num_processes=4,\
 --wandb_download_folder=flavorfusion-team/FlavorFusion/model-w10g07vv:v0,\
---quantize"
+--prune"
 
 gcloud ai custom-jobs create \
 --region=$GCP_REGION \

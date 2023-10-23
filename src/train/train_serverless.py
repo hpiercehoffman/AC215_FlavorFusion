@@ -12,6 +12,10 @@ import os
 import wandb
 import argparse
 import shutil
+import zipfile
+import tempfile
+
+import torch.nn.utils.prune as prune
 
 from google.cloud import storage
 
@@ -69,23 +73,17 @@ def get_num_docs(text: str, doc_sep_token: str) -> int:
     return len(list(filter(bool, split_docs(text, doc_sep_token=doc_sep_token))))
 
 
-def truncate_multi_doc(
-    text: str,
-    doc_sep: str,
-    doc_sep_token: str,
-    max_length: int,
-    tokenizer):
-    
+def truncate_multi_doc(text: str, doc_sep: str, doc_sep_token: str, max_length: int, tokenizer):
     """Truncate reviews in a token-separated string so that the length of all reviews together
     does not exceed max_length."""
     input_docs = split_docs(text, doc_sep_token=doc_sep)
-    # Determine number of reviews from the input text
     num_docs = get_num_docs(text, doc_sep_token=doc_sep)
-    # -2 to make room for the special tokens, -(len(docs) - 1) to make room for the doc sep tokens.
+    
+    # -2 to make room for the special tokens, - num_docs - 1) to make room for the doc sep tokens
     max_doc_length = (max_length - 2 - (num_docs - 1)) // num_docs
+    
     # Truncate each doc to its maximum allowed length
     truncated_docs = [
-        # Going to join everything on a space at the end, so strip it off here.
         tokenizer.convert_tokens_to_string(tokenizer.tokenize(doc, max_length=max_doc_length, truncation=True)).strip()
         for doc in input_docs
     ]
@@ -115,6 +113,9 @@ def sample_reviews(examples, max_docs_per_review=5, k_top_longest=20):
 
 
 def process_document(documents, doc_sep, max_source_length, tokenizer, DOCSEP_TOKEN_ID, PAD_TOKEN_ID):
+    """Helper function to remove newlines, insert separator tokens, and apply padding. Returns a list of
+    processed tensors representing a set of reviews.
+    """
     input_ids_all=[]
     for data in documents:
         all_docs = data.split(doc_sep)[:-1]
@@ -123,32 +124,23 @@ def process_document(documents, doc_sep, max_source_length, tokenizer, DOCSEP_TO
             doc = " ".join(doc.split())
             all_docs[i] = doc
 
-        #### concat with global attention on doc-sep
+        #### Add separator tokens
         input_ids = []
         for doc in all_docs:
-            input_ids.extend(
-                tokenizer.encode(
-                    doc,
-                    truncation=True,
-                    max_length=max_source_length // len(all_docs),
-                )[1:-1]
-            )
+            input_ids.extend(tokenizer.encode(doc, truncation=True, max_length=max_source_length // len(all_docs),)[1:-1])
             input_ids.append(DOCSEP_TOKEN_ID)
-        input_ids = (
-            [tokenizer.bos_token_id]
-            + input_ids
-            + [tokenizer.eos_token_id]
-        )
+        input_ids = ([tokenizer.bos_token_id] + input_ids + [tokenizer.eos_token_id])
         input_ids_all.append(torch.tensor(input_ids))
-    input_ids = torch.nn.utils.rnn.pad_sequence(
-        input_ids_all, batch_first=True, padding_value=PAD_TOKEN_ID
-    )
+        
+    input_ids = torch.nn.utils.rnn.pad_sequence(input_ids_all, batch_first=True, padding_value=PAD_TOKEN_ID)
     return input_ids
 
 
 def preprocess_function(examples, tokenizer, text_column, summary_column, max_source_length, max_target_length, 
                         padding="max_length", ignore_pad_token_for_loss=True, prefix=""):
-    
+    """Preprocess review data in preparation for model training.
+    Tokenize reviews and summaries, add separator tokens, replace pad tokens, and setup global attention mask.
+    """
     model_inputs = {}
     PAD_TOKEN_ID = tokenizer.pad_token_id
     DOCSEP_TOKEN_ID = tokenizer.convert_tokens_to_ids("<doc-sep>")
@@ -159,8 +151,10 @@ def preprocess_function(examples, tokenizer, text_column, summary_column, max_so
             inputs.append(examples[text_column][i])
             targets.append(examples[summary_column][i])
 
+    # Add prefix if using any special prefix string
     inputs = [prefix + inp for inp in inputs]
     
+    # Truncate reviews where necessary and add separator tokens
     model_inputs['input_ids'] = process_document(inputs,
                                                  doc_sep='|||||', 
                                                  max_source_length=max_source_length,
@@ -172,23 +166,18 @@ def preprocess_function(examples, tokenizer, text_column, summary_column, max_so
     with tokenizer.as_target_tokenizer():
         labels = tokenizer(targets, max_length=max_target_length, padding=padding, truncation=True)
 
-    # If we are padding here, replace all tokenizer.pad_token_id in the labels by -100 when we want to ignore
-    # padding in the loss.
+    # Replace pad tokens so we can ignore padding when calculating the loss
     if padding == "max_length" and ignore_pad_token_for_loss:
-        labels["input_ids"] = [
-            [(l if l != tokenizer.pad_token_id else -100) for l in label] for label in labels["input_ids"]
-        ]
+        labels["input_ids"] = [ [(l if l != tokenizer.pad_token_id else -100) for l in label] for label in labels["input_ids"] ]
 
     model_inputs["labels"] = labels["input_ids"]
-    
     global_attention_mask = torch.zeros_like(model_inputs['input_ids']).to(model_inputs['input_ids'])
     
-    # put global attention on <s> token
+    # Global attention should be on separator token
     global_attention_mask[:, 0] = 1
     global_attention_mask[model_inputs['input_ids'] == DOCSEP_TOKEN_ID] = 1
     
     model_inputs["global_attention_mask"] = global_attention_mask
-    
     return model_inputs
 
 
@@ -211,12 +200,25 @@ def length_of_iterable_dataset(dataset):
     return count
 
 def get_model_size(model):
-    torch.save(model.state_dict(), "tmp.pt")
-    model_size = os.path.getsize("tmp.pt") / (1024*1024)
-    os.remove("tmp.pt")
-    return round(model_size, 2)
+    """Helper function to calculate the unzipped and zipped size of a model file."""
+    _, model_file = tempfile.mkstemp(".h5")
+    torch.save(model.state_dict(), model_file)
 
+    _, zip3 = tempfile.mkstemp(".zip")
+    with zipfile.ZipFile(zip3, "w", compression=zipfile.ZIP_DEFLATED) as f:
+        f.write(model_file)
+        
+    uncompressed_size = os.path.getsize(model_file) / float(1000))
+    compressed_size = os.path.getsize(zip3) / float(1000))
+        
+    print("Model before zip: %.2f Kb"% (uncompressed_size))
+    print("Model after zip: %.2f Kb"% (compressed_size))
+    return uncompressed_size, compressed_size
+        
 def inference(batch, model, tokenizer, summary_field):
+    """Run inference using a trained model. Tokenize inputs and use the trained model to generate one or more summaries.
+    Decode the summaries and return them as regular text.
+    """
     input_ids = batch['input_ids']
 
     # get the input ids and attention masks together
@@ -229,28 +231,28 @@ def inference(batch, model, tokenizer, summary_field):
         max_length=100,
         num_beams=1)
     
-    generated_str = tokenizer.batch_decode(
-            generated_ids.tolist(), skip_special_tokens=True
-        )
+    generated_str = tokenizer.batch_decode(generated_ids.tolist(), skip_special_tokens=True)
     result={}
     result['generated_summaries'] = generated_str
     result['gt_summaries']=batch[summary_field]
     return result
-
+    
 
 def main(args):
     
+    # Sanity check if we are using GPU
     print("Now checking GPU availability")
     print(torch.cuda.is_available())
     
+    # If using wandb, WANDB_KEY should be passed as an environment variable
     if args.wandb:
         os.environ["WANDB_PROJECT"]="FlavorFusion"
         os.environ["WANDB_LOG_MODEL"]="true"
         os.environ["WANDB_WATCH"]="false"
         wandb.login(key=args.wandb_key)
     
+    # Option to use a model downloaded from wandb (for further training or pruning)
     if args.wandb_download_folder:
-        print('Fetching model from wandb')
         run = wandb.init()
         artifact = run.use_artifact(args.wandb_download_folder, type="model")
         artifact_dir = artifact.download(root=args.input_dir)
@@ -263,19 +265,19 @@ def main(args):
     model = AutoModelForSeq2SeqLM.from_pretrained(args.model_name)
     model.resize_token_embeddings(len(tokenizer))
     
-    # Calculate base model size
-    if (args.quantize or args.prune):
-        base_model_size = get_model_size(model)
+    # Calculate base model size and compression metric so we can compare after pruning
+    if (args.prune):
+        base_uncompressed, base_compressed = get_model_size(model)
     
     # TODO: Have to check if this works
     if args.download:
         download_data(local_folder = args.input_dir)
         
-    # Reads all csv files in the given folder
+    # Read all csv files in the data folder
     data_files = {'train': os.path.join(args.input_dir, '*.csv')}
     raw_dataset = load_dataset('csv', data_files=data_files, split='train', streaming = True if args.streaming else False)
     
-    # Shuffle dataset and create train-test split
+    # Shuffle dataset and create train-test split. If using streaming, training and test datasets must be split manually
     raw_dataset = raw_dataset.shuffle(seed=42)
     if args.streaming:
         TOTAL_SIZE = 5100
@@ -289,6 +291,7 @@ def main(args):
     # Augment the data by shortening each multi-review set to only 'args.max_docs_per_review' (default=5) per review set
     aug_kwargs = {'max_docs_per_review':args.max_docs_per_review, 'k_top_longest': args.k_top_longest}
     
+    # Run data augmentation to create more data points
     if args.streaming:
         aug_dataset_train = raw_dataset_train.map(
             sample_reviews,
@@ -317,7 +320,7 @@ def main(args):
                     'max_source_length': args.max_source_length, 
                     'max_target_length': args.max_target_length}
     
-    
+    # Run data preprocessing
     if args.streaming:
         train_dataset = aug_dataset_train.map(
             preprocess_function,
@@ -349,55 +352,42 @@ def main(args):
         
     # Prepare data collators
     label_pad_token_id = -100 
-    data_collator = DataCollatorForSeq2Seq(
-        tokenizer,
-        model=model,
-        label_pad_token_id=label_pad_token_id,
-        pad_to_multiple_of=None,
-    )
+    data_collator = DataCollatorForSeq2Seq(tokenizer, model=model, label_pad_token_id=label_pad_token_id, pad_to_multiple_of=None)
 
-    # Prepare metric
+    # Prepare evaluation metric
     metric = load_metric("rouge")
     
-    # Function to compute metrics for validation data at every epoch
-    def compute_metrics(eval_preds):
-        ignore_pad_token_for_loss = True
-        preds, labels = eval_preds
-        if isinstance(preds, tuple):
-            preds = preds[0]
-        decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
-        if ignore_pad_token_for_loss:
-            # Replace -100 in the labels as we can't decode them.
-            labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
-        decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
-
-        # Some simple post-processing
-        decoded_preds, decoded_labels = postprocess_text(decoded_preds, decoded_labels)
-
-        result = metric.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
-        # Extract a few results from ROUGE
-        result = {key: value.mid.fmeasure * 100 for key, value in result.items()}
-
-        prediction_lens = [np.count_nonzero(pred != tokenizer.pad_token_id) for pred in preds]
-        result["gen_len"] = np.mean(prediction_lens)
-        result = {k: round(v, 4) for k, v in result.items()}
-        return result
-    
-    
-    if args.quantize:
-        from optimum.intel import INCModelForSeq2SeqLM, INCSeq2SeqTrainer
-        from neural_compressor import QuantizationAwareTrainingConfig
-        print('Running quantization on the model')
-        quantization_config = QuantizationAwareTrainingConfig()
+    # Some pruning code adapted from https://github.com/pytorch/tutorials/issues/1054
+    # Pruning is a post-training action, so if we are pruning, we assume we are traning for 0 epochs
     if args.prune:
-        from optimum.intel import INCModelForSeq2SeqLM, INCSeq2SeqTrainer
-        from neural_compressor import WeightPruningConfig
-        print('Running pruning on the model')
-        pruning_config = WeightPruningConfig(start_step=0,
-                                             end_step=len(train_dataset),
-                                             target_sparsity=0.4,
-                                             pruning_scope="local")
-    
+        args.num_train_epochs = 0
+        print("Now pruning the model to sparsity " + str(1 - args.prune_amount))
+        
+        # Construct a list of layers to prune
+        suffix_list = ['output', 'fc1', 'fc2', 'global']
+        parameters_to_prune = [
+            (v, "weight") 
+            for k, v in dict(model.named_modules()).items()
+            if ((len(list(v.children())) == 0) and (k.endswith(tuple(suffix_list))))
+        ]
+        
+        # Apply global unstructured pruning to specified layers, removing the desired amount of weights
+        prune.global_unstructured(
+            parameters_to_prune,
+            pruning_method=prune.L1Unstructured,
+            amount=args.prune_amount
+        )
+        
+        # We need to call prune.remove to make pruning permanent
+        for k, v in dict(model.named_modules()).items():
+            if ((len(list(v.children())) == 0) and (k.endswith(tuple(suffix_list)))):
+                prune.remove(v, 'weight')
+        
+        # Calculate compression metrics after pruning
+        prune_uncompressed, prune_compressed = get_model_size(model)
+        
+        torch.save(model, args.model_output_path + "pruned_model.bin")
+        
     # Generate training arguments 
     training_args = Seq2SeqTrainingArguments( 
         output_dir=args.model_output_path,
@@ -416,40 +406,51 @@ def main(args):
         fp16=True,
         predict_with_generate=True)
     
-    
-    # Initialize main trainer 
-    if (args.quantize or args.prune):
-        assert args.num_train_epochs == 1
-        trainer = INCSeq2SeqTrainer(
-            model=model,
-            args=training_args,
-            quantization_config=quantization_config if args.quantize else None,
-            pruning_config=pruning_config if args.prune else None,
-            train_dataset=train_dataset,
-            eval_dataset=train_dataset,
-            tokenizer=tokenizer,
-            data_collator=data_collator,
-            compute_metrics=compute_metrics,
-        )
-    else:
-        trainer = Seq2SeqTrainer(
-            model=model,
-            args=training_args,
-            train_dataset=train_dataset,
-            eval_dataset=test_dataset,
-            tokenizer=tokenizer,
-            data_collator=data_collator,
-            compute_metrics=compute_metrics)
+    # Function to compute metrics for validation data at every epoch. This function must be declared
+    # inside main so it can be passed to the trainer initialization.
+    def compute_metrics(eval_preds):
+        """Function to compute metrics for validation data at every epoch"""
+        ignore_pad_token_for_loss = True
+        preds, labels = eval_preds
+        if isinstance(preds, tuple):
+            preds = preds[0]
+        decoded_preds = tokenizer.batch_decode(preds, skip_special_tokens=True)
+        if ignore_pad_token_for_loss:
+            # Replace -100 in the labels as we can't decode them
+            labels = np.where(labels != -100, labels, tokenizer.pad_token_id)
+        decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
 
-    # Train
+        # Some simple post-processing
+        decoded_preds, decoded_labels = postprocess_text(decoded_preds, decoded_labels)
+        result = metric.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
+        
+        # Extract a few results from ROUGE metric
+        result = {key: value.mid.fmeasure * 100 for key, value in result.items()}
+
+        prediction_lens = [np.count_nonzero(pred != tokenizer.pad_token_id) for pred in preds]
+        result["gen_len"] = np.mean(prediction_lens)
+        result = {k: round(v, 4) for k, v in result.items()}
+        return result
+    
+    # Initialize trainer
+    trainer = Seq2SeqTrainer(
+        model=model,
+        args=training_args,
+        train_dataset=train_dataset,
+        eval_dataset=test_dataset,
+        tokenizer=tokenizer,
+        data_collator=data_collator,
+        compute_metrics=compute_metrics)
+
+    # Train the model with specified parameters
     train_result = trainer.train()
     
-    # Calculate optimized model size
-    if (args.quantize or args.prune):
-        opt_model_size = get_model_size(trainer.model)
-        print(f"The full-precision model size is {round(base_model_size)} MB while the optimized model one is {round(opt_model_size)} MB.")
-        print(f"The optimized model is {round(base_model_size / opt_model_size, 2)}x smaller than the full-precision one.")
-    
+    # Print metrics to show the effect of pruning
+    if (args.prune):
+        print(f"The compressed size of the base model is {round(base_compressed)} KB while the compressed size of the pruned model is {round(prune_compressed)} KB.")
+        print(f"The optimized model is {round(base_compressed / prune_compressed, 2)}x smaller than the base model after compression.")
+        
+        trainer.evaluate()
     
     # Close wandb and save artifacts
     if args.wandb:
@@ -459,13 +460,9 @@ def main(args):
             artifact = wandb.Artifact('pruned_model', type='model')
             artifact.add_dir(args.model_output_path)
             run.log_artifact(artifact)
-        if args.quantize:
-            artifact = wandb.Artifact('quantized_model', type='model')
-            artifact.add_dir(args.model_output_path)
-            run.log_artifact(artifact)
         wandb.finish()
     
-    # Inference
+    # Debugging option to run inference on a sample data point after traning to check results
     if args.inference:
         import random
         random.seed(42)
@@ -482,7 +479,6 @@ def main(args):
         print('Generated summary: ')
         print(results[0]['generated_summaries'])
         
-    
 
 if __name__ == "__main__":
     
@@ -514,8 +510,8 @@ if __name__ == "__main__":
     parser.add_argument('--lr', type=float, default=2e-5, help='Learning rate for training')
     parser.add_argument('--batch_size', type=int, default=1, help='Batch size for training')
     parser.add_argument('--num_train_epochs', type=int, default=20, help='Total number of epochs for training')
-    parser.add_argument('--quantize', action="store_true", help='Whether to perform quantization on the model during the training')
     parser.add_argument('--prune', action="store_true", help='Whether to perform pruning on the model during the training')
+    parser.add_argument('--prune_amount', type=float, default=0.5, help='Proportion of parameters to prune in prunable layers')
     parser.add_argument('--model_name', type=str, default='allenai/PRIMERA-multinews', help='Hugginface Name or local path of pretrained model to use')
     parser.add_argument('--wandb_download_folder', default=None, help='Full locaton of the model on wandb to download')
     
