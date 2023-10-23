@@ -7,6 +7,7 @@ Project Organization
       ├── README.md
       ├── notebooks
       ├── references
+      │   └── references.md
       ├── reports
       │   ├── milestone2.md
       │   └── milestone3.md
@@ -65,6 +66,11 @@ This milestone deals with model optimization and deployment.
 - For information on model training, see our [Milestone 3 report](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/reports/milestone3.md). Model training takes place in the **train** Docker container.
 
 ### Model Optimization ###
+
+We implemented two model optimizations: **quantization** and **pruning**. 
+- Quantization optimizes a trained model by storing model weights at a lower precision. We wanted to use quantization to try to reduce the model size and speed up model inference.
+- Pruning optimizes a trained model by removing weights which are close to zero. Similar to quantization, we wanted to use pruning to reduce the model size and speed up model inference. Pruning can also reduce overfitting in some cases, which would help our model generalize to new inputs during inference.
+
 
 
 ### Model Deployment: Cloud Functions ###
