@@ -437,8 +437,16 @@ def main(args):
     # Save model
     trainer.save_model(args.model_output_path)
     
-    # Close wandb
+    # Close wandb and save artifacts
     if args.wandb:
+        if args.prune:
+            artifact = wandb.Artifact('pruned_model', type='model')
+            artifact.add_file(args.model_output_path)
+            run.log_artifact(artifact)
+        if args.quantize:
+            artifact = wandb.Artifact('quantized_model', type='model')
+            artifact.add_file(args.model_output_path)
+            run.log_artifact(artifact)
         wandb.finish()
     
     # Inference
