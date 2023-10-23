@@ -71,12 +71,19 @@ We implemented two model optimizations: **quantization** and **pruning**.
 - Quantization optimizes a trained model by storing model weights at a lower precision. We wanted to use quantization to try to reduce the model size and speed up model inference.
 - Pruning optimizes a trained model by removing weights which are close to zero. Similar to quantization, we wanted to use pruning to reduce the model size and speed up model inference. Pruning can also reduce overfitting in some cases, which would help our model generalize to new inputs during inference.
 
+We use Intel's [Neural Compressor library](https://www.intel.com/content/www/us/en/developer/tools/oneapi/neural-compressor.html) to implement both quantization and pruning. Neural Compressor offers a Huggingface integration called [Optimum Intel](https://github.com/huggingface/optimum-intel) which integrates with other Huggingface model optimization tools.
 
+Optimum Intel performs quantization and pruning as a post-training step, using a similar interface to the Huggingface Trainer class. Therefore, we added quantization and pruning flags to our existing training script. By changing the command line arguments to the training script, it's possible to run either optimization or quantization on a previously trained model. See the [Setup Notes](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone4/README.md#setup-notes) section for full details of how to run these optimization methods.
 
 ### Model Deployment: Cloud Functions ###
 
+We deploy multiple models as [Cloud Functions](https://cloud.google.com/functions?hl=en). 
+- (List item 1)
+- (List item 2)
 
+The below screenshots show our cloud function deployments in action. We can modulate the input to a cloud function by editing the URL to the endpoint. For more details on setting up and running cloud functions, see the [Setup Notes](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone4/README.md#setup-notes) section below.
 
+(Include screenshots)
 
 ### notebooks ###    
 This directory is currently empty, but will be used to store code which doesn't belong to a specific container, such as reports, insights, or visualizations. 
@@ -95,7 +102,10 @@ This directory contains information on models, datasets, and other external refe
 ### Using Artifact Registry ###
 
 
-### Serverless Training ###   
+### Serverless Training ###  
+
+
+### Running Quantization and Pruning ###
 
 
 ### Cloud Function Setup ###
