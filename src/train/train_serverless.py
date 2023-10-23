@@ -384,10 +384,9 @@ def main(args):
         from neural_compressor import WeightPruningConfig
         print('Running pruning on the model')
         pruning_config = WeightPruningConfig(start_step=0,
-                                             end_step=100,
-                                             target_sparsity=0.8,
+                                             end_step=len(train_dataset),
+                                             target_sparsity=0.4,
                                              pruning_scope="local")
-    
     
     # Generate training arguments 
     training_args = Seq2SeqTrainingArguments( 

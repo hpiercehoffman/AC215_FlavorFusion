@@ -11,6 +11,7 @@ import os
 import wandb
 import argparse
 import shutil
+import time
 
 from datasets import load_dataset, load_metric, Dataset
 
@@ -125,18 +126,43 @@ def hello_http(request):
 
     print("request_json:", request_json)
     print("request_args:", request_args)
+        
+    text = "The new 110 Grill in Malden was a great first experience. The outside patio is perfect for eating outside during a nice summer night. It can get a little noisy with the train and traffic but it is nice to sit outside. Our waitress Viviane was amazing and catered to our every need. The food was also amazing! The firecracker shrimp appetizer was delicious. Their drinks were also very good too. Will definitely be going again to try new things!|||||Amazing staff and environment! I am gluten free so seeing a whole menu dedicated to me was something I was missing for a year!! Food was delicious, looked good and was prepared with care and passion!!\n\nDefinitely recommend everyone to come here and enjoy it as much as us... specially if like me you have a problem with gluten!!|||||Their attitude is very polite. Their service is perfect. You can find the best steak there. There is also a loyalty program that you can save on your meals for next visits. They have this Sandae brownie in the picture which tastes so good!"
 
-    if request_args and 'text' in request_args:
-        text = request_args['text']
+    if request_args and "text" in request_args:
+        text = request_args["text"]
+
+    print(text)
+    
+    wandb_download_folder = 'flavorfusion-team/FlavorFusion/model-w10g07vv:v0'
+    local_download_folder = "./model-w10g07vv:v0"
+    
+    os.environ["WANDB_PROJECT"]="FlavorFusion"
+    os.environ["WANDB_LOG_MODEL"]="false"
+    os.environ["WANDB_WATCH"]="false"
+    wandb.login(key=os.environ['WANDB_KEY'])
+    
+    #print('Fetching finetuned model from wandb')
+    # run = wandb.init()
+    # artifact = run.use_artifact(wandb_download_folder, type="model")
+    api = wandb.Api()
+    artifact = api.artifact(wandb_download_folder)
+    
+    if not os.path.exists(local_download_folder):
+        artifact_dir = artifact.download(root=local_download_folder)
+        print("Model downloaded from wandb to: ", artifact_dir)
     else:
-        text = "The new 110 Grill in Malden was a great first experience. The outside patio is perfect for eating outside during a nice summer night. It can get a little noisy with the train and traffic but it is nice to sit outside. Our waitress Viviane was amazing and catered to our every need. The food was also amazing! The firecracker shrimp appetizer was delicious. Their drinks were also very good too. Will definitely be going again to try new things!|||||Amazing staff and environment! I am gluten free so seeing a whole menu dedicated to me was something I was missing for a year!! Food was delicious, looked good and was prepared with care and passion!!\n\nDefinitely recommend everyone to come here and enjoy it as much as us... specially if like me you have a problem with gluten!!|||||Their attitude is very polite. Their service is perfect. You can find the best steak there. There is also a loyalty program that you can save on your meals for next visits. They have this Sandae brownie in the picture which tastes so good!"
-
-    model_name = 'allenai/PRIMERA-multinews'
+        artifact_dir = local_download_folder
+        
+    model_name = artifact_dir
+    
+    start_time = time.time()
+    
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     config = AutoConfig.from_pretrained(model_name)
     model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
     model.resize_token_embeddings(len(tokenizer))
-
+    
     my_input = {"review": [text]}
     dataset = Dataset.from_dict(my_input)
     
@@ -153,6 +179,9 @@ def hello_http(request):
 
     fn_kwargs = {'model': model, 'tokenizer': tokenizer, 'max_len': 128, 'num_beams': 1}
     x = dataset.map(inference_batch, fn_kwargs=fn_kwargs, batched=True, batch_size=1)
+    
+    elapsed_time = time.time() - start_time
+    print("Elapsed time for inference: " + str(elapsed_time))
 
     return x[0]['generated_summaries']
 
