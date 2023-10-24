@@ -467,7 +467,8 @@ def main(args):
             artifact = wandb.Artifact('pruned_model', type='model')
             artifact.add_dir(args.model_output_path)
             run.log_artifact(artifact)
-        wandb.finish()
+        if not args.prune:
+            wandb.finish()
     
     # Debugging option to run inference on a sample data point after traning to check results
     if args.inference:
