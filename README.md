@@ -75,7 +75,7 @@ This milestone deals with model optimization and deployment.
 
 We chose **pruning** for our optimization technique. Pruning optimizes a trained model by removing weights which are close to zero. Similar to quantization, we wanted to use pruning to reduce the model size and speed up model inference. Pruning can also reduce overfitting in some cases, which would help our model generalize to new inputs during inference. 
 
-| Model                       | Memory (zipped) GB | ROUGE-1 | ROUGE-2 | ROUGE-L | Inference time (seconds) |
+| Model                       | Memory zipped (GB) | ROUGE-1 | ROUGE-2 | ROUGE-L | Inference time (seconds) |
 |-----------------------------|--------------------|---------|---------|---------|--------------------------|
 | PRIMERA fine-tuned          | 1.66               | 36.97   | 13.71   | 26.92   | 3.2                      |   
 | PRIMERA fine-tuned + pruned | 1.49               | 32.43   | 9.49    | 22.83   | 3.1                      |  
