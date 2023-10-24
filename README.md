@@ -77,13 +77,16 @@ Optimum Intel performs quantization and pruning as a post-training step, using a
 
 ### Model Deployment: Cloud Functions ###
 
-We deploy multiple models as [Cloud Functions](https://cloud.google.com/functions?hl=en). 
-- (List item 1)
-- (List item 2)
+We deploy multiple models as [Cloud Functions](https://cloud.google.com/functions?hl=en):
+- **Base model**: We use [PRIMERA-multinews](https://huggingface.co/allenai/PRIMERA-multinews) as our base model for zero-shot inference.
+- **Trained model**: We use the base weights from PRIMERA-multinews and train the model further on our [LSARS dataset](https://github.com/ScarletPan/LSARS).
+- **Pruned model**: We also provide a pruned version of the trained model so we can compare the inference speed and the quality of the output. We pruned 50% of parameters in fully connected layers, output layers, and global attention layers.
 
-The below screenshots show our cloud function deployments in action. We can modulate the input to a cloud function by editing the URL to the endpoint. For more details on setting up and running cloud functions, see the [Setup Notes](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone4/README.md#setup-notes) section below.
+The below screenshots show our cloud function deployments in action. We can modulate the input to a cloud function by editing the URL to the endpoint.
 
-(Include screenshots)
+(Screenshots)
+
+For more details on setting up and running cloud functions, see the [Setup Notes](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone4/README.md#setup-notes) section below.
 
 ### notebooks ###    
 This directory is currently empty, but will be used to store code which doesn't belong to a specific container, such as reports, insights, or visualizations. 
@@ -101,11 +104,61 @@ This directory contains information on models, datasets, and other external refe
 
 ### Using Artifact Registry ###
 
+For our serverless training runs, we weren't able to use prebuilt containers as we discussed in class. This is because Vertex AI's prebuilt containers don't support PyTorch 2.0.1. Therefore, we used Google's [Artifact Registry](https://cloud.google.com/artifact-registry) to host a custom container for serverless training. When a serverless training run is triggered, our custom container is deployed, and the training script automatically runs with the provided input arguments. Using a custom container allows us to ensure that our PyTorch version and other package versions are exactly what our code needs.
+
+To set up Artifact Registry, we first created an Artifact Registry repository within our project following [this documentation](https://cloud.google.com/artifact-registry/docs/repositories/create-repos). We then followed [this documentation](https://cloud.google.com/artifact-registry/docs/docker/pushing-and-pulling) to tag and push our custom container to the repo we created. The key steps of pushing a container are the following:
+- Make sure your service account is active on your local machine: `gcloud auth activate-service-account flavor-fusion-service@flavor-fusion-399619.iam.gserviceaccount.com --key-file secrets/flavor-fusion-service.json`
+- Authenticate to Artifact Registry from your local machine: `gcloud auth print-access-token | docker login -u oauth2accesstoken     --password-stdin https://us-central1-docker.pkg.dev`
+- Build the docker image for your custom container: `docker build -t <image_name> --platform=linux/amd64 -f Dockerfile .`
+- Tag the image with the appropriate naming conventions for Artifact Registry: `docker tag <image_name> us-central1-docker.pkg.dev/<project_name>/<repo_name>/<image_name>:latest`
+- Push the image to Artifact Registry: `docker tag <image_name> us-central1-docker.pkg.dev/<project_name>/<repo_name>/<image_name>:latest`
+
+The container must be CUDA-capable and must have the training script (`train_serverless.py`) as an entrypoint. Installing CUDA in a Docker container is a non-trivial task, so we used a prebuilt base container with PyTorch 2.0.1 and CUDA 11.8 pre-installed. We then added our files and required packages. The base container we used can be found [here](https://hub.docker.com/r/anibali/pytorch/tags).
 
 ### Serverless Training ###  
 
+We use a [script](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone4/src/train/submit_job.sh) to submit our serverless training jobs. The script reads from a [config file](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone4/src/train/config.yaml) which specifies the following parameters:
+- Machine type (we use g2-standard-4)
+- GPU type (must be Nvidia L4)
+- Number of GPUS
+- URI of our custom container on Artifact Registry
 
-### Running Quantization and Pruning ###
+In addition to the config file, the job submission script also contains the following parameters:
+- Unique job identifier (randomly generated)
+- Job name (can be changed to describe the job)
+- GCP region (we have L4 GPUs available in us-east1 and us-central1)
+
+Finally, the job submission script allows you to provide arguments to the training script, which will be run when the serverless job begins. We provide a full list of arguments below, including arguments which have been added in Milestone 4:
+- `--input_dir`: Path to directory containing the preprocessed LSARS data files. If the `--download` flag is specified, files will be downloaded from our GCS bucket to this repository.
+- `--model_output_path`: Path to directory where model weights and reports will be saved at the end of the training run. If using WandB, model outputs will also be uploaded to our WandB project.
+- `--download`: Flag to indicate that the preprocessed LSARS data should be downloaded from our GCS bucket before model training. This flag is needed if running the training script for the first time in a new GCP VM.
+- `--wandb`: Flag to indicate whether WandB should be used for logging. If this flag is active, you will be prompted to enter a WandB API key at the start of the run. Alternately, you can run `wandb login` before running the training script.
+- `--streaming`: Whether to stream data during model training. Streaming uses the [streaming functionality](https://huggingface.co/docs/datasets/stream) of Huggingface Transformers. This functionality is similar to TF Data.
+- `--test_ratio`: Proportion of the dataset to use for evaluation.
+- `--k_top_longest`: Maximum number of reviews to use from each data point. To decrease the demand on GPU RAM, we subsample the reviews from each data point. When subsampling, we preferentially select the longest reviews, since these are more likely to be high-quality reviews which are reflected in the summary review.
+- `--max_docs_per_review`: Data augmentation option for splitting each data point into multiple new data points. For example, if `k_top_longest` is set to 20 and `max_docs_per_review` is set to 5, each data point will be subsampled to 20 reviews, then split into 4 new data points, each of which contains 5 reviews and one summary. To run without data augmentation, set `k_top_longest` and `max_docs_per_review` to the same value.
+- `--num_processes`: Number of processes used when constructing the Dataset object from the preprocessed data files.
+- `--max_source_length`: Maximum number of tokens for each set of reviews being summarized. This number refers to the length of the entire review group, rather than the length of individual reviews in the group. Tokens beyond this length will be truncated.
+- `--max_target_length`: Maximum number of tokens for each summary review. Tokens beyond this length will be truncated.
+- `--subset_dataset_to`: Number of data points to use if not training on the entire dataset; this is primarily a debugging option when checking if the training script works.
+- `--lr`: Learning rate for training. We train with a lower learning rate when using pre-trained weights, since the model doesn't have to start from a random initialization.
+- `--batch_size`: Number of data points to be processed in each batch.
+- `--num_train_epochs`: Number of epochs to train for.
+- `--prune`: **(New in MS4)** Boolean flag which specifies whether pruning should be performed on a model.
+- `--prune_amount`: **(New in MS4)** Proportion of parameters which should be pruned (between 0.0 and 1.0). We currently support pruning on fully connected layers, output layers, and global attention layers.
+- `--wandb_download_folder`: **(New in MS4)** WandB project URI of a previous model which should be downloaded and used for training. Example: `flavorfusion-team/FlavorFusion/model-w10g07vv:v0`
+- `--inference`: **(New in MS4)** Debugging flag which runs inference on one example from the training dataset after training is complete.
+
+Note that if you are using WandB to track results, the environment variable `$WANDB_KEY` must be set on your local machine before running the script.
+
+To submit a job, simply edit the script to add your desired training arguments and run parameters. Then execute the following commands:
+- `gcloud auth` (if you need to authenticate first)
+- `chmod 777 submit_job.sh` (if running the script for the first time)
+- `sh submit_job.sh`
+
+After the serverless job is submitted, you will be able to see it in the [Custom Jobs console](https://console.cloud.google.com/vertex-ai/training/custom-jobs). 
+
+### Pruning a Model ###
 
 
 ### Cloud Function Setup ###
