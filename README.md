@@ -6,6 +6,7 @@ Project Organization
       ├── LICENSE
       ├── README.md
       ├── notebooks
+      |   └── pruning_evaluation.ipynb
       ├── references
       │   └── references.md
       ├── reports
@@ -94,7 +95,7 @@ The below screenshots show our cloud function deployments in action.
 For more details on setting up and running cloud functions, see the [Setup Notes](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone4/README.md#setup-notes) section below.
 
 ### notebooks ###    
-This directory is currently empty, but will be used to store code which doesn't belong to a specific container, such as reports, insights, or visualizations. 
+This folder will be used to store code which doesn't belong to a specific container, such as reports, insights, or visualizations. Currently contains `pruning_evaluation.ipynb` to evaluate and compute benchmark statistics for a base versus pruned model. 
 
 ### reports ###
 This directory contains our reports from past milestones:
