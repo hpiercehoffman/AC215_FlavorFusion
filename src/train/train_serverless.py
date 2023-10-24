@@ -208,8 +208,11 @@ def get_model_size(model):
     with zipfile.ZipFile(zip3, "w", compression=zipfile.ZIP_DEFLATED) as f:
         f.write(model_file)
         
-    uncompressed_size = os.path.getsize(model_file) / float(1000))
-    compressed_size = os.path.getsize(zip3) / float(1000))
+    uncompressed_size = os.path.getsize(model_file) / float(1000)
+    compressed_size = os.path.getsize(zip3) / float(1000)
+    
+    os.remove(model_file)
+    os.remove(zip3)
         
     print("Model before zip: %.2f Kb"% (uncompressed_size))
     print("Model after zip: %.2f Kb"% (compressed_size))
@@ -266,8 +269,8 @@ def main(args):
     model.resize_token_embeddings(len(tokenizer))
     
     # Calculate base model size and compression metric so we can compare after pruning
-    if (args.prune):
-        base_uncompressed, base_compressed = get_model_size(model)
+    #if (args.prune):
+    #    base_uncompressed, base_compressed = get_model_size(model)
     
     # TODO: Have to check if this works
     if args.download:

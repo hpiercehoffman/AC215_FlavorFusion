@@ -4,6 +4,9 @@ workerPoolSpecs:
       acceleratorType: NVIDIA_L4
       acceleratorCount: 1
     replicaCount: 1
+    diskSpec:
+      bootDiskType: pd-ssd
+      bootDiskSizeGb: 150
     containerSpec:
       imageUri: us-central1-docker.pkg.dev/flavor-fusion-399619/flavor-fusion/cuda-train:latest
   
