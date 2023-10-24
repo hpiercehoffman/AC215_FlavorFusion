@@ -76,7 +76,7 @@ This milestone deals with model optimization and deployment.
 We chose **pruning** for our optimization technique. Pruning optimizes a trained model by removing weights which are close to zero. Similar to quantization, we wanted to use pruning to reduce the model size and speed up model inference. Pruning can also reduce overfitting in some cases, which would help our model generalize to new inputs during inference. We show the result of pruning for our models below on a NVIDIA T4 GPU. 
 
 | Model                       | Memory zipped (GB) | ROUGE-1 | ROUGE-2 | ROUGE-L | Inference time (s) |
-|-----------------------------|--------------------|---------|---------|---------|--------------------------|
+|-----------------------------|:--------------------:|:---------:|:---------:|:---------:|:--------------------------:|
 | PRIMERA-multinews (zero-shot)       | 1.66               | 20.99   | 2.50  | 13.2   | 4.4              |
 | PRIMERA-multinews  fine-tuned on LSARS        | 1.66               | 36.97   | 13.71   | 26.92   | 3.2               |   
 | PRIMERA-multimews  fine-tuned on LSARS + pruned (50%) | 1.49               | 32.43   | 9.49    | 22.83   | 3.1       |  
