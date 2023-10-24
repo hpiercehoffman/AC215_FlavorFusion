@@ -73,7 +73,7 @@ This milestone deals with model optimization and deployment.
 
 ### Model Optimization ###
 
-We chose **pruning** for our optimization technique. Pruning optimizes a trained model by removing weights which are close to zero. Similar to quantization, we wanted to use pruning to reduce the model size and speed up model inference. Pruning can also reduce overfitting in some cases, which would help our model generalize to new inputs during inference. We show the result of pruning for our models below.
+We chose **pruning** for our optimization technique. Pruning optimizes a trained model by removing weights which are close to zero. Similar to quantization, we wanted to use pruning to reduce the model size and speed up model inference. Pruning can also reduce overfitting in some cases, which would help our model generalize to new inputs during inference. We show the result of pruning for our models below on a NVIDIA T4 GPU. 
 
 | Model                       | Memory zipped (GB) | ROUGE-1 | ROUGE-2 | ROUGE-L | Inference time (s) |
 |-----------------------------|--------------------|---------|---------|---------|--------------------------|
