@@ -73,7 +73,7 @@ This milestone deals with model optimization and deployment.
 
 ### Model Optimization ###
 
-We chose **pruning** for our optimization technique. Pruning optimizes a trained model by removing weights which are close to zero. Similar to quantization, we wanted to use pruning to reduce the model size and speed up model inference. Pruning can also reduce overfitting in some cases, which would help our model generalize to new inputs during inference. We show the result of pruning for our models below on a NVIDIA T4 GPU. 
+We chose **pruning** for our optimization technique. Pruning optimizes a trained model by removing weights which are close to zero. Similar to quantization, we wanted to use pruning to reduce the model size and speed up model inference. Pruning can also reduce overfitting in some cases, which would help our model generalize to new inputs during inference. We pruned 50% of parameters in fully connected and output layers. The performance benchmarks before and after pruning on a NVIDIA T4 GPU is given below. 
 
 | Model                       | Memory zipped (GB) | ROUGE-1 | ROUGE-2 | ROUGE-L | Inference time (s) |
 |-----------------------------|:--------------------:|:---------:|:---------:|:---------:|:--------------------------:|
@@ -89,7 +89,7 @@ We chose **pruning** for our optimization technique. Pruning optimizes a trained
 We deploy multiple models as [Cloud Functions](https://cloud.google.com/functions?hl=en):
 - **Base model**: We use [PRIMERA-multinews](https://huggingface.co/allenai/PRIMERA-multinews) as our base model for zero-shot inference.
 - **Trained model**: We use the base weights from PRIMERA-multinews and train the model further on our [LSARS dataset](https://github.com/ScarletPan/LSARS).
-- **Pruned model**: We also provide a pruned version of the trained model so we can compare the inference speed and the quality of the output. We pruned 50% of parameters in fully connected and output layers.
+- **Pruned model**: We also provide a pruned version of the trained model so we can compare the inference speed and the quality of the output. 
 
 The below screenshots show our cloud function deployments in action. 
 
