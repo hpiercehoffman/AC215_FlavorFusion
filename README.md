@@ -78,7 +78,7 @@ We chose **pruning** for our optimization technique. Pruning optimizes a trained
 | Model                       | Memory zipped (GB) | ROUGE-1 | ROUGE-2 | ROUGE-L | Inference time (seconds) |
 |-----------------------------|--------------------|---------|---------|---------|--------------------------|
 | PRIMERA fine-tuned          | 1.66               | 36.97   | 13.71   | 26.92   | 3.2                      |   
-| PRIMERA fine-tuned + pruned (0.5) | 1.49               | 32.43   | 9.49    | 22.83   | 3.1                      |  
+| PRIMERA fine-tuned + pruned (50%) | 1.49               | 32.43   | 9.49    | 22.83   | 3.1                      |  
 
 
 
