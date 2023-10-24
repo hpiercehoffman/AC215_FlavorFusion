@@ -73,7 +73,7 @@ This milestone deals with model optimization and deployment.
 
 ### Model Optimization ###
 
-We chose **pruning** for our optimization technique. Pruning optimizes a trained model by removing weights which are close to zero. Similar to quantization, we wanted to use pruning to reduce the model size and speed up model inference. Pruning can also reduce overfitting in some cases, which would help our model generalize to new inputs during inference. We pruned 50% of parameters in fully connected and output layers. The performance benchmarks before and after pruning on a NVIDIA T4 GPU is given below. 
+We chose **pruning** for our optimization technique. Pruning optimizes a trained model by removing weights which are close to zero. Similar to quantization, we wanted to use pruning to reduce the model size and speed up model inference. Pruning can also reduce overfitting in some cases, which would help our model generalize to new inputs during inference. We pruned 50% of parameters in fully connected and output layers. The performance benchmarks on the LSARS dataset before and after pruning on a NVIDIA T4 GPU is given below. 
 
 | Model                       | Memory zipped (GB) | ROUGE-1 | ROUGE-2 | ROUGE-L | Inference time (s) |
 |-----------------------------|:--------------------:|:---------:|:---------:|:---------:|:--------------------------:|
