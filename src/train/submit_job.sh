@@ -1,5 +1,5 @@
 export UUID=$(openssl rand -hex 6)
-export DISPLAY_NAME="primera_training_basic_pruned_$UUID"
+export DISPLAY_NAME="primera_pruning_$UUID"
 export GCP_REGION="us-central1" 
 
 export CMDARGS="--input_dir=./,\

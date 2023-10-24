@@ -28,6 +28,9 @@ from transformers import (
 )
 
 def process_document(documents, doc_sep, max_source_length, tokenizer, DOCSEP_TOKEN_ID, PAD_TOKEN_ID):
+    """Helper function to remove newlines, insert separator tokens, and apply padding. Returns a list of
+    processed tensors representing a set of reviews.
+    """
     input_ids_all=[]
     for data in documents:
         all_docs = data.split(doc_sep)[:-1]
@@ -36,16 +39,10 @@ def process_document(documents, doc_sep, max_source_length, tokenizer, DOCSEP_TO
             doc = " ".join(doc.split())
             all_docs[i] = doc
 
-        #### concat with global attention on doc-sep
+        #### Add separator tokens
         input_ids = []
         for doc in all_docs:
-            input_ids.extend(
-                tokenizer.encode(
-                    doc,
-                    truncation=True,
-                    max_length=max_source_length // len(all_docs),
-                )[1:-1]
-            )
+            input_ids.extend(tokenizer.encode(doc,truncation=True,max_length=max_source_length // len(all_docs),)[1:-1])
             input_ids.append(DOCSEP_TOKEN_ID)
         input_ids = (
             [tokenizer.bos_token_id]
@@ -53,14 +50,14 @@ def process_document(documents, doc_sep, max_source_length, tokenizer, DOCSEP_TO
             + [tokenizer.eos_token_id]
         )
         input_ids_all.append(torch.tensor(input_ids))
-    input_ids = torch.nn.utils.rnn.pad_sequence(
-        input_ids_all, batch_first=True, padding_value=PAD_TOKEN_ID
-    )
+    input_ids = torch.nn.utils.rnn.pad_sequence(input_ids_all, batch_first=True, padding_value=PAD_TOKEN_ID)
     return input_ids
 
 
 def preprocess_function(examples, tokenizer, text_column, max_source_length, padding="max_length", prefix=""):
-    
+    """Preprocess review data in preparation for model training.
+    Tokenize a set of reviews, add separator tokens, replace pad tokens, and setup global attention mask.
+    """
     model_inputs = {}
     PAD_TOKEN_ID = tokenizer.pad_token_id
     DOCSEP_TOKEN_ID = tokenizer.convert_tokens_to_ids("<doc-sep>")
@@ -82,7 +79,7 @@ def preprocess_function(examples, tokenizer, text_column, max_source_length, pad
     
     global_attention_mask = torch.zeros_like(model_inputs['input_ids']).to(model_inputs['input_ids'])
     
-    # put global attention on <s> token
+    # Global attention should be on separator token
     global_attention_mask[:, 0] = 1
     global_attention_mask[model_inputs['input_ids'] == DOCSEP_TOKEN_ID] = 1
     
@@ -91,7 +88,9 @@ def preprocess_function(examples, tokenizer, text_column, max_source_length, pad
     return model_inputs
 
 def inference_batch(examples, model, tokenizer, max_len=512, num_beams=3):
-
+    """Run inference using a trained model. Tokenize inputs and use the trained model to generate a summary.
+    Decode the summary and return it as regular text. Maximum length of the generated summary is max_len tokens.
+    """
     input_ids = torch.tensor(examples['input_ids']).to(model.device)
     global_attention_mask=torch.tensor(examples['global_attention_mask']).to(model.device)
     
@@ -111,15 +110,9 @@ def inference_batch(examples, model, tokenizer, max_len=512, num_beams=3):
 
 @functions_framework.http
 def hello_http(request):
-
-    """HTTP Cloud Function.
-    Args:
-        request (flask.Request): The request object.
-        <https://flask.palletsprojects.com/en/1.1.x/api/#incoming-request-data>
-    Returns:
-        The response text, or any set of values that can be turned into a
-        Response object using `make_response`
-        <https://flask.palletsprojects.com/en/1.1.x/api/#flask.make_response>.
+    """HTTP cloud function. The input to this function is a Flask request object, which can be produced from 
+    an API call or by directly manipulating the endpoint URL. We download the zero-shot model (PRIMERA-multinews)
+    and run inference on the text input from the Flask request. We return a generated summary as a Flask response.
     """
     request_json = request.get_json(silent=True)
     request_args = request.args

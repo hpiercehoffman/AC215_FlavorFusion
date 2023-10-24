@@ -38,7 +38,7 @@ def process_document(documents, doc_sep, max_source_length, tokenizer, DOCSEP_TO
             doc = " ".join(doc.split())
             all_docs[i] = doc
 
-       #### Add separator tokens
+        #### Add separator tokens
         input_ids = []
         for doc in all_docs:
             input_ids.extend(tokenizer.encode(doc,truncation=True,max_length=max_source_length // len(all_docs),)[1:-1])
@@ -124,17 +124,11 @@ def hello_http(request):
     print(text)
     
     model_name = 'allenai/PRIMERA-multinews'
-    local_cache_dir = "./PRIMERA-multinews"
     
     # Load the PRIMERA-multinews model from Huggingface
-    if not os.path.exists("./PRIMERA-multinews"):
-        tokenizer = AutoTokenizer.from_pretrained(model_name, cache_dir=local_cache_dir)
-        config = AutoConfig.from_pretrained(model_name, cache_dir=local_cache_dir)
-        model = AutoModelForSeq2SeqLM.from_pretrained(model_name, cache_dir=local_cache_dir)
-    else:
-        tokenizer = AutoTokenizer.from_pretrained(local_cache_dir)
-        config = AutoConfig.from_pretrained(local_cache_dir)
-        model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    config = AutoConfig.from_pretrained(model_name)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
         
     model.resize_token_embeddings(len(tokenizer))
 

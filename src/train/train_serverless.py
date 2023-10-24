@@ -15,6 +15,8 @@ import shutil
 import zipfile
 import tempfile
 
+import evaluate
+
 import torch.nn.utils.prune as prune
 
 from google.cloud import storage
@@ -29,7 +31,7 @@ from transformers import (
     PreTrainedTokenizer,
     Seq2SeqTrainer,
     Seq2SeqTrainingArguments,
-    set_seed,
+    set_seed
 )
 
 # Some functions in this script are adapted from the following example:
@@ -268,11 +270,10 @@ def main(args):
     model = AutoModelForSeq2SeqLM.from_pretrained(args.model_name)
     model.resize_token_embeddings(len(tokenizer))
     
-    # Calculate base model size and compression metric so we can compare after pruning
-    #if (args.prune):
-    #    base_uncompressed, base_compressed = get_model_size(model)
+    #Calculate base model size and compression metric so we can compare after pruning
+    if (args.prune):
+       base_uncompressed, base_compressed = get_model_size(model)
     
-    # TODO: Have to check if this works
     if args.download:
         download_data(local_folder = args.input_dir)
         
@@ -358,7 +359,8 @@ def main(args):
     data_collator = DataCollatorForSeq2Seq(tokenizer, model=model, label_pad_token_id=label_pad_token_id, pad_to_multiple_of=None)
 
     # Prepare evaluation metric
-    metric = load_metric("rouge")
+    #metric = load_metric("rouge")
+    metric = evaluate.load("rouge")
     
     # Some pruning code adapted from https://github.com/pytorch/tutorials/issues/1054
     # Pruning is a post-training action, so if we are pruning, we assume we are traning for 0 epochs
@@ -368,6 +370,7 @@ def main(args):
         
         # Construct a list of layers to prune
         suffix_list = ['output', 'fc1', 'fc2', 'global']
+        #suffix_list = ['output']
         parameters_to_prune = [
             (v, "weight") 
             for k, v in dict(model.named_modules()).items()
@@ -388,7 +391,6 @@ def main(args):
         
         # Calculate compression metrics after pruning
         prune_uncompressed, prune_compressed = get_model_size(model)
-        
         torch.save(model, args.model_output_path + "pruned_model.bin")
         
     # Generate training arguments 
@@ -396,7 +398,7 @@ def main(args):
         output_dir=args.model_output_path,
         evaluation_strategy="epoch",
         save_strategy="epoch",
-        load_best_model_at_end = False if (args.quantize or args.prune) else True,
+        load_best_model_at_end = False if (args.prune) else True,
         report_to="wandb" if args.wandb else None,
         learning_rate=args.lr,
         per_device_train_batch_size=args.batch_size,
@@ -428,7 +430,7 @@ def main(args):
         result = metric.compute(predictions=decoded_preds, references=decoded_labels, use_stemmer=True)
         
         # Extract a few results from ROUGE metric
-        result = {key: value.mid.fmeasure * 100 for key, value in result.items()}
+        result = {key: value * 100 for key, value in result.items()}
 
         prediction_lens = [np.count_nonzero(pred != tokenizer.pad_token_id) for pred in preds]
         result["gen_len"] = np.mean(prediction_lens)
@@ -446,7 +448,8 @@ def main(args):
         compute_metrics=compute_metrics)
 
     # Train the model with specified parameters
-    train_result = trainer.train()
+    if not args.prune:
+        train_result = trainer.train()
     
     # Print metrics to show the effect of pruning
     if (args.prune):

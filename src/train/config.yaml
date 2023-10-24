@@ -8,5 +8,5 @@ workerPoolSpecs:
       bootDiskType: pd-ssd
       bootDiskSizeGb: 150
     containerSpec:
-      imageUri: us-central1-docker.pkg.dev/flavor-fusion-399619/flavor-fusion/cuda-train:latest
+      imageUri: us-central1-docker.pkg.dev/flavor-fusion-399619/flavor-fusion/cuda-flavor:latest
   
