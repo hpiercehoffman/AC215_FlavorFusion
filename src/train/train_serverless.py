@@ -363,13 +363,13 @@ def main(args):
     metric = evaluate.load("rouge")
     
     # Some pruning code adapted from https://github.com/pytorch/tutorials/issues/1054
-    # Pruning is a post-training action, so if we are pruning, we assume we are traning for 0 epochs
+    # Pruning is a post-training action, so if we are pruning, we assume we are training for 0 epochs
     if args.prune:
-        args.num_train_epochs = 0
+        #args.num_train_epochs = 0
         print("Now pruning the model to sparsity " + str(1 - args.prune_amount))
         
         # Construct a list of layers to prune
-        suffix_list = ['output', 'fc1', 'fc2', 'global']
+        suffix_list = ['output', 'fc1']
         #suffix_list = ['output']
         parameters_to_prune = [
             (v, "weight") 
@@ -391,7 +391,7 @@ def main(args):
         
         # Calculate compression metrics after pruning
         prune_uncompressed, prune_compressed = get_model_size(model)
-        torch.save(model, args.model_output_path + "pruned_model.bin")
+        #torch.save(model, args.model_output_path + "pruned_model.bin")
         
     # Generate training arguments 
     training_args = Seq2SeqTrainingArguments( 
@@ -456,13 +456,14 @@ def main(args):
         print(f"The compressed size of the base model is {round(base_compressed)} KB while the compressed size of the pruned model is {round(prune_compressed)} KB.")
         print(f"The optimized model is {round(base_compressed / prune_compressed, 2)}x smaller than the base model after compression.")
         
-        trainer.evaluate()
+        #trainer.evaluate()
     
     # Close wandb and save artifacts
     if args.wandb:
         if 'run' not in locals():
             run = wandb.init()
         if args.prune:
+            trainer.save_model(args.model_output_path)
             artifact = wandb.Artifact('pruned_model', type='model')
             artifact.add_dir(args.model_output_path)
             run.log_artifact(artifact)
