@@ -207,7 +207,7 @@ The cloud function should now be available as an endpoint. To provide new input 
 
 `/?text=Great restaurant great experience|||||Food was great, had a couple sampling from the appetizers, the tater tots, and calamari, both were excellent, although the calamari with sweet chili sauce, I just couldn't stop eating. For an entree I ordered the chimi churri sirloin was cooked to perfection tender, flavourful, and juicy. The only down side to my experience was the fresh baked rolls were either over cooked or micro waved, as they were so hard and hardly edible. Highly recommended place to eat.|||||Great job with the take out!|||||great service and great food`
 
-An example endpoint for our trained model is available [here](https://us-central1-flavor-fusion-399619.cloudfunctions.net/primera_trained). 
+An example endpoint for our trained model is available [here](https://us-central1-flavor-fusion-399619.cloudfunctions.net/primera_trained). **Note:** The endpoint may take 60-90 seconds to load, please be patient.
 
 # References #
 
