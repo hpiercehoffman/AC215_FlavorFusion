@@ -1,4 +1,3 @@
-import functions_framework
 import sys
 import torch
 import re
@@ -19,11 +18,6 @@ from transformers import (
     AutoConfig,
     AutoModelForSeq2SeqLM,
     AutoTokenizer,
-    DataCollatorForSeq2Seq,
-    HfArgumentParser,
-    PreTrainedTokenizer,
-    Seq2SeqTrainer,
-    Seq2SeqTrainingArguments,
     set_seed,
 )
 
@@ -108,6 +102,56 @@ def inference_batch(examples, model, tokenizer, max_len=512, num_beams=3):
     result['generated_summaries'] = generated_str
     return result
 
+def main(text):
+    wandb_download_folder = 'flavorfusion-team/FlavorFusion/model-w10g07vv:v0'
+    local_download_folder = "./model-w10g07vv:v0"
+    
+    os.environ["WANDB_PROJECT"]="FlavorFusion"
+    os.environ["WANDB_LOG_MODEL"]="false"
+    os.environ["WANDB_WATCH"]="false"
+    wandb.login(key=os.environ['WANDB_KEY'])
+
+    api = wandb.Api()
+    artifact = api.artifact(wandb_download_folder)
+    
+    if not os.path.exists(local_download_folder):
+        artifact_dir = artifact.download(root=local_download_folder)
+        print("Model downloaded from wandb to: ", artifact_dir)
+    else:
+        artifact_dir = local_download_folder
+
+        start_time = time.time()
+    
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    config = AutoConfig.from_pretrained(model_name)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+    model.resize_token_embeddings(len(tokenizer))
+    
+    my_input = {"review": [text]}
+    dataset = Dataset.from_dict(my_input)
+    
+    fn_kwargs = {'text_column': 'review', 
+                 'tokenizer': tokenizer,
+                 'max_source_length': 1024}
+
+    dataset = dataset.map(
+        preprocess_function,
+        fn_kwargs=fn_kwargs,
+        batched=True,
+        num_proc=1,
+        desc="Running tokenizer dataset")
+
+    fn_kwargs = {'model': model, 'tokenizer': tokenizer, 'max_len': 128, 'num_beams': 1}
+    x = dataset.map(inference_batch, fn_kwargs=fn_kwargs, batched=True, batch_size=1)
+    
+    elapsed_time = time.time() - start_time
+    print("Elapsed time for inference: " + str(elapsed_time))
+
+    return x[0]['generated_summaries']
+
+
+if __name__ == "__main__":
+    main('hi|||||hi')
 
 
 

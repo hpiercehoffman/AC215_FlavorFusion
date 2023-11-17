@@ -6,6 +6,7 @@ import os
 from fastapi import Request
 from tempfile import TemporaryDirectory
 from pydantic import BaseModel
+from model_inference import main
 
 app = FastAPI(title="API Server", description="API Server", version="v1")
 
@@ -26,19 +27,14 @@ async def get_index():
 
 
 
-
-
 @app.post("/predict")
 async def predict(reviews: Reviews):
-    print("We entered prediction endpoint")
-    print(reviews.reviews)
-    reviews_list = reviews.reviews.split("|||||")
-    print(reviews_list)
+    
+    summary = main(reviews.reviews)
     
     prediction_results = {
-        "summary": "This is a placeholder"
+        "summary": summary
     }
-    print(reviews)
     
     return prediction_results
 

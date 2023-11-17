@@ -10,6 +10,14 @@ uvicorn = "*"
 fastapi = "*"
 pandas = "*"
 pydantic = "*"
+numpy = "*"
+torch = "*"
+transformers = "*"
+datasets = "*"
+tqdm = "*"
+wandb = "*"
+accelerate = "*"
+
 
 [requires]
 python_version = "3.9"
