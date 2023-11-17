@@ -3,8 +3,9 @@ from starlette.middleware.cors import CORSMiddleware
 import asyncio
 import pandas as pd
 import os
-from fastapi import File
+from fastapi import Request
 from tempfile import TemporaryDirectory
+from pydantic import BaseModel
 
 app = FastAPI(title="API Server", description="API Server", version="v1")
 
@@ -16,18 +17,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+class Reviews(BaseModel):
+    reviews: str
+
 @app.get("/")
 async def get_index():
     return {"message": "Welcome to the API Service"}
 
 @app.post("/predict")
-async def predict(reviews: str):
-    reviews_list = reviews.split("|||||")
+async def predict(reviews: Reviews):
+    print("We entered prediction endpoint")
+    print(reviews.reviews)
+    reviews_list = reviews.reviews.split("|||||")
+    print(reviews_list)
     
     prediction_results = {
-        "num_reviews": len(reviews_list),
-        "placeholder_summary": "This is a placeholder"
+        "summary": "This is a placeholder"
     }
+    print(reviews)
     
     return prediction_results
 

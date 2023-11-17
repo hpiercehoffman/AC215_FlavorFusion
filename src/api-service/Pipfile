@@ -9,6 +9,7 @@ verify_ssl = true
 uvicorn = "*"
 fastapi = "*"
 pandas = "*"
+pydantic = "*"
 
 [requires]
 python_version = "3.9"

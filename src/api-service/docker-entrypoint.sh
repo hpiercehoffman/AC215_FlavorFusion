@@ -1,6 +1,7 @@
 #!/bin/bash
 
 echo "Container is running!!!"
+echo "You updated the code"
 
 # this will run the api/service.py file with the instantiated app FastAPI
 uvicorn_server() {

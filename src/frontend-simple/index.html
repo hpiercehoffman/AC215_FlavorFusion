@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Review Summarization</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+
+    <h2>API Interaction</h2>
+    <input type="text" id="inputText" placeholder="Enter text">
+    <button onclick="sendToAPI()">Submit</button>
+    <div id="output"></div>
+
+    <script>
+        axios.defaults.baseURL = "http://localhost:9000/"
+
+        function sendToAPI() {
+            var inputText = document.getElementById('inputText').value;
+            console.log("Input text:", inputText)
+
+            axios.post('/predict', {
+                reviews: inputText
+            }, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(function (response) {
+                document.getElementById('output').innerHTML = 'Output: ' + response.data.summary;
+            })
+            .catch(function (error) {
+                if (error.response) {
+                    // The request was made and the server responded with a status code
+                    console.log("Data:", error.response.data);
+                    console.log("Status:", error.response.status);
+                    console.log("Headers:", error.response.headers);
+                } else if (error.request) {
+                    // The request was made but no response was received
+                    console.log("Request:", error.request);
+                } else {
+                    // Something else caused the error
+                    console.log('Error', error.message);
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>
