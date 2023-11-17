@@ -24,6 +24,10 @@ class Reviews(BaseModel):
 async def get_index():
     return {"message": "Welcome to the API Service"}
 
+
+
+
+
 @app.post("/predict")
 async def predict(reviews: Reviews):
     print("We entered prediction endpoint")
