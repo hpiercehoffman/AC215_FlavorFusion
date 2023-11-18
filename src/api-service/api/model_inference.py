@@ -105,13 +105,12 @@ def inference_batch(examples, model, tokenizer, max_len=512, num_beams=3):
 def generate_summary(text):
     wandb_download_folder = 'flavorfusion-team/FlavorFusion/model-w10g07vv:v0'
     local_download_folder = "./model-w10g07vv:v0"
-    
-    os.environ["WANDB_PROJECT"]="FlavorFusion"
-    os.environ["WANDB_LOG_MODEL"]="false"
-    os.environ["WANDB_WATCH"]="false"
-    wandb.login(key=os.environ['WANDB_KEY'])
 
     if not os.path.exists(local_download_folder):
+        os.environ["WANDB_PROJECT"]="FlavorFusion"
+        os.environ["WANDB_LOG_MODEL"]="false"
+        os.environ["WANDB_WATCH"]="false"
+        wandb.login(key=os.environ['WANDB_KEY'])
         api = wandb.Api()
         artifact = api.artifact(wandb_download_folder)
         artifact_dir = artifact.download(root=local_download_folder)
