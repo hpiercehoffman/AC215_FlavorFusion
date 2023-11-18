@@ -120,7 +120,7 @@ def generate_summary(text):
     else:
         artifact_dir = local_download_folder
 
-        start_time = time.time()
+    start_time = time.time()
         
     model_name = artifact_dir
     
