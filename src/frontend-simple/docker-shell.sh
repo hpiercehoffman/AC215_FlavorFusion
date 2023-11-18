@@ -18,4 +18,4 @@ echo "Changed the port"
 # -p: Publish a container's port(s) to the host (host_port: container_port) 
 docker run --rm --name $IMAGE_NAME -ti \
 -v "$BASE_DIR":/app \
--p 9000:9000 $IMAGE_NAME
+-p 3000:3000 $IMAGE_NAME
