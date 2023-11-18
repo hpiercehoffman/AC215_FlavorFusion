@@ -11,11 +11,11 @@ export BASE_DIR=$(pwd)
 
 # Build the image based on the Dockerfile
 docker build -t $IMAGE_NAME -f Dockerfile .
-echo "This is latest"
+echo "Changed the port"
 
 # Run the container
 # --v: Attach a filesystem volume to the container
 # -p: Publish a container's port(s) to the host (host_port: container_port) 
 docker run --rm --name $IMAGE_NAME -ti \
 -v "$BASE_DIR":/app \
--p 8080:8080 $IMAGE_NAME
+-p 9000:9000 $IMAGE_NAME

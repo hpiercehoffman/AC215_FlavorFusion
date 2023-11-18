@@ -10,7 +10,7 @@ RUN set -ex; \
     mkdir -p /app && \
     chown app:app /app
 
-EXPOSE 8080
+EXPOSE 9000
 
 # Switch to the new user
 USER app
