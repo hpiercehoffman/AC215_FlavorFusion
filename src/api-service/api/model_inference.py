@@ -111,10 +111,9 @@ def generate_summary(text):
     os.environ["WANDB_WATCH"]="false"
     wandb.login(key=os.environ['WANDB_KEY'])
 
-    api = wandb.Api()
-    artifact = api.artifact(wandb_download_folder)
-    
     if not os.path.exists(local_download_folder):
+        api = wandb.Api()
+        artifact = api.artifact(wandb_download_folder)
         artifact_dir = artifact.download(root=local_download_folder)
         print("Model downloaded from wandb to: ", artifact_dir)
     else:
