@@ -102,7 +102,7 @@ def inference_batch(examples, model, tokenizer, max_len=512, num_beams=3):
     result['generated_summaries'] = generated_str
     return result
 
-def main(text):
+def generate_summary(text):
     wandb_download_folder = 'flavorfusion-team/FlavorFusion/model-w10g07vv:v0'
     local_download_folder = "./model-w10g07vv:v0"
     
@@ -121,6 +121,8 @@ def main(text):
         artifact_dir = local_download_folder
 
         start_time = time.time()
+        
+    model_name = artifact_dir
     
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     config = AutoConfig.from_pretrained(model_name)
@@ -150,8 +152,8 @@ def main(text):
     return x[0]['generated_summaries']
 
 
-if __name__ == "__main__":
-    main('hi|||||hi')
+# if __name__ == "__main__":
+#     main('hi|||||hi')
 
 
 
