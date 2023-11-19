@@ -105,6 +105,7 @@ def inference_batch(examples, model, tokenizer, max_len=512, num_beams=3):
 def generate_summary(text, use_finetuned=False):
 
     if use_finetuned:
+        # make func
         wandb_download_folder = 'flavorfusion-team/FlavorFusion/model-w10g07vv:v0'
         local_download_folder = "./model-w10g07vv:v0"
         if not os.path.exists(local_download_folder):

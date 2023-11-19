@@ -20,15 +20,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def get_reviews(hotel):
-    text = df[df['Name'] == hotel]['text']
+def get_reviews(restaurant):
+    text = df[df['Name'] == restaurant]['text']
     return list(text)[0]
 
 # class Reviews(BaseModel):
 #     reviews: str
 
-class HotelRequest(BaseModel):
-    hotel: str
+class RestaurantRequest(BaseModel):
+    restaurant: str
 
 @app.get("/")
 async def get_index():
@@ -40,9 +40,9 @@ async def populate():
 
 
 @app.post("/predict")
-async def predict(hotel: HotelRequest):
+async def predict(restaurant: RestaurantRequest):
 
-    reviews = get_reviews(hotel.hotel)
+    reviews = get_reviews(restaurant.restaurant)
     
     summary = model_inference.generate_summary(reviews)
     
