@@ -12,7 +12,7 @@
     </select>
     <button onclick="sendHotel()">Submit</button>
     <br><br>
-    <input type="text" id="selectedHotel" readonly>
+    <div id="output"></div>
     <script>
 
         axios.defaults.baseURL = "http://localhost:9000/";
@@ -34,10 +34,11 @@
 
         // Function to send selected hotel and display response
         function sendHotel() {
+            output.innerHTML = '';
             const selectedHotel = document.getElementById('hotelDropdown').value;
             axios.post('/predict', { hotel: selectedHotel })
                 .then(response => {
-                    document.getElementById('selectedHotel').value = response.data;
+                    output.innerHTML = 'Output: ' + response.data.summary;
                 })
                 .catch(error => console.error('Error:', error));
         }
