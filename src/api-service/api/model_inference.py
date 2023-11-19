@@ -11,15 +11,14 @@ import wandb
 import argparse
 import shutil
 import time
-
 from datasets import load_dataset, load_metric, Dataset
-
 from transformers import (
     AutoConfig,
     AutoModelForSeq2SeqLM,
     AutoTokenizer,
     set_seed,
 )
+
 
 def process_document(documents, doc_sep, max_source_length, tokenizer, DOCSEP_TOKEN_ID, PAD_TOKEN_ID):
     """Helper function to remove newlines, insert separator tokens, and apply padding. Returns a list of

@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <title>Welcome to FlavorFusion</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- Swagger UI CSS -->
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist/swagger-ui.css">
+    <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-standalone-preset.js"></script>
+
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -86,13 +91,16 @@
         <h1>Welcome to FlavorFusion</h1>
     </header>
     <div class="container">
-        <h2>Select a Hotel</h2>
-        <select id="hotelDropdown">
+        <h2>Select a restaurant</h2>
+        <select id="restaurantDropdown">
             <!-- Dropdown options will be populated here -->
         </select>
-        <button onclick="sendHotel()">Submit</button>
+        <button onclick="sendrestaurant()">Submit</button>
         <div id="output"></div>
     </div>
+
+    <!-- Swagger UI -->
+    <div id="swagger-ui"></div>
 
     <script>
         axios.defaults.baseURL = "http://localhost:9000/";
@@ -104,22 +112,22 @@
         function populateDropdown() {
             axios.get('/populate')
                 .then(response => {
-                    const dropdown = document.getElementById('hotelDropdown');
-                    response.data.forEach(hotel => {
+                    const dropdown = document.getElementById('restaurantDropdown');
+                    response.data.forEach(restaurant => {
                         let option = document.createElement('option');
-                        option.value = hotel;
-                        option.text = hotel;
+                        option.value = restaurant;
+                        option.text = restaurant;
                         dropdown.appendChild(option);
                     });
                 })
                 .catch(error => console.error('Error:', error));
         }
 
-        function sendHotel() {
+        function sendrestaurant() {
             const output = document.getElementById('output');
             output.innerHTML = '<div class="loader"></div>';
-            const selectedHotel = document.getElementById('hotelDropdown').value;
-            axios.post('/predict', { hotel: selectedHotel })
+            const selectedrestaurant = document.getElementById('restaurantDropdown').value;
+            axios.post('/predict', { restaurant: selectedrestaurant })
                 .then(response => {
                     output.innerHTML = 'Output: ' + response.data.summary;
                 })
@@ -128,6 +136,22 @@
                     output.innerHTML = 'Error: Could not generate summary.';
                 });
         }
+    </script>
+
+    <!-- Swagger UI JS and Initialization -->
+    <script src="https://unpkg.com/swagger-ui-dist/swagger-ui-bundle.js"></script>
+    <script>
+        window.onload = () => {
+            window.ui = SwaggerUIBundle({
+            url: 'http://localhost:9000/openapi.json',
+            dom_id: '#swagger-ui',
+            presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIStandalonePreset
+                ],
+            layout: "StandaloneLayout",
+    });
+  };
     </script>
 </body>
 </html>

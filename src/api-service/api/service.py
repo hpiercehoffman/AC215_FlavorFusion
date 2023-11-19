@@ -7,10 +7,9 @@ from fastapi import Request
 from tempfile import TemporaryDirectory
 from pydantic import BaseModel
 from api import model_inference
+from api import data_download
 
 app = FastAPI(title="API Server", description="API Server", version="v1")
-
-df = pd.read_csv('./combined-data-combined_Massachusetts_small.csv', index_col=0)
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,9 +23,6 @@ def get_reviews(restaurant):
     text = df[df['Name'] == restaurant]['text']
     return list(text)[0]
 
-# class Reviews(BaseModel):
-#     reviews: str
-
 class RestaurantRequest(BaseModel):
     restaurant: str
 
@@ -34,8 +30,13 @@ class RestaurantRequest(BaseModel):
 async def get_index():
     return {"message": "Welcome to the API Service"}
 
+
 @app.get("/populate")
 async def populate():
+
+    small_file_path, large_file_path = data_download.download_reviews()
+    df = pd.read_csv(small_file_path, index_col=0)
+
     return df['Name'].tolist()
 
 
@@ -52,16 +53,6 @@ async def predict(restaurant: RestaurantRequest):
     
     return prediction_results
 
-# @app.post("/predict")
-# async def predict(reviews: Reviews):
-    
-#     summary = model_inference.generate_summary(reviews.reviews)
-    
-#     prediction_results = {
-#         "summary": summary
-#     }
-    
-#     return prediction_results
 
 
 
