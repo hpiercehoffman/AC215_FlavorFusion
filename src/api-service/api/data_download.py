@@ -21,6 +21,7 @@ def download_reviews():
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
     blobs = bucket.list_blobs(prefix="reviews-data/")
+    print(blobs)
     for blob in blobs:
         if not blob.name.endswith("reviews-data/"):
             print("Downloading data file:", blob.name)
