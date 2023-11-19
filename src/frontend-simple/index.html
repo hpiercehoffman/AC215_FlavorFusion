@@ -2,22 +2,105 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Hotel Selector</title>
+    <title>Welcome to FlavorFusion</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        header {
+            background-color: #0056b3;
+            color: white;
+            padding: 10px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        select, button {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #output {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #eef2f7;
+            border: 1px solid #d1e0e9;
+            border-radius: 4px;
+        }
+
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+            margin: 10px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
-    <h1>Select a Hotel</h1>
-    <select id="hotelDropdown">
-        <!-- Dropdown options will be populated here -->
-    </select>
-    <button onclick="sendHotel()">Submit</button>
-    <br><br>
-    <div id="output"></div>
-    <script>
+    <header>
+        <img src="logo.png" alt="FlavorFusion Logo" height="100">
+        <h1>Welcome to FlavorFusion</h1>
+    </header>
+    <div class="container">
+        <h2>Select a Hotel</h2>
+        <select id="hotelDropdown">
+            <!-- Dropdown options will be populated here -->
+        </select>
+        <button onclick="sendHotel()">Submit</button>
+        <div id="output"></div>
+    </div>
 
+    <script>
         axios.defaults.baseURL = "http://localhost:9000/";
 
-        // Function to populate dropdown
+        document.addEventListener('DOMContentLoaded', function() {
+            populateDropdown();
+        });
+
         function populateDropdown() {
             axios.get('/populate')
                 .then(response => {
@@ -32,23 +115,19 @@
                 .catch(error => console.error('Error:', error));
         }
 
-        // Function to send selected hotel and display response
         function sendHotel() {
-            output.innerHTML = '';
+            const output = document.getElementById('output');
+            output.innerHTML = '<div class="loader"></div>';
             const selectedHotel = document.getElementById('hotelDropdown').value;
             axios.post('/predict', { hotel: selectedHotel })
                 .then(response => {
                     output.innerHTML = 'Output: ' + response.data.summary;
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    console.error('Error:', error);
+                    output.innerHTML = 'Error: Could not generate summary.';
+                });
         }
-
-        // Populate dropdown on page load
-        window.onload = populateDropdown;
     </script>
 </body>
 </html>
-
-
-
-
