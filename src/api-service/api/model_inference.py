@@ -102,21 +102,24 @@ def inference_batch(examples, model, tokenizer, max_len=512, num_beams=3):
     result['generated_summaries'] = generated_str
     return result
 
-def generate_summary(text):
-    wandb_download_folder = 'flavorfusion-team/FlavorFusion/model-w10g07vv:v0'
-    local_download_folder = "./model-w10g07vv:v0"
+def generate_summary(text, use_finetuned=False):
 
-    if not os.path.exists(local_download_folder):
-        os.environ["WANDB_PROJECT"]="FlavorFusion"
-        os.environ["WANDB_LOG_MODEL"]="false"
-        os.environ["WANDB_WATCH"]="false"
-        wandb.login(key=os.environ['WANDB_KEY'])
-        api = wandb.Api()
-        artifact = api.artifact(wandb_download_folder)
-        artifact_dir = artifact.download(root=local_download_folder)
-        print("Model downloaded from wandb to: ", artifact_dir)
+    if use_finetuned:
+        wandb_download_folder = 'flavorfusion-team/FlavorFusion/model-w10g07vv:v0'
+        local_download_folder = "./model-w10g07vv:v0"
+        if not os.path.exists(local_download_folder):
+            os.environ["WANDB_PROJECT"]="FlavorFusion"
+            os.environ["WANDB_LOG_MODEL"]="false"
+            os.environ["WANDB_WATCH"]="false"
+            wandb.login(key=os.environ['WANDB_KEY'])
+            api = wandb.Api()
+            artifact = api.artifact(wandb_download_folder)
+            artifact_dir = artifact.download(root=local_download_folder)
+            print("Model downloaded from wandb to: ", artifact_dir)
+        else:
+            artifact_dir = local_download_folder
     else:
-        artifact_dir = local_download_folder
+        model_name = 'allenai/PRIMERA-multinews'
 
     start_time = time.time()
         
