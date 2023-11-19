@@ -118,12 +118,11 @@ def generate_summary(text, use_finetuned=False):
             print("Model downloaded from wandb to: ", artifact_dir)
         else:
             artifact_dir = local_download_folder
+        model_name = artifact_dir
     else:
         model_name = 'allenai/PRIMERA-multinews'
 
     start_time = time.time()
-        
-    model_name = artifact_dir
     
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     config = AutoConfig.from_pretrained(model_name)
