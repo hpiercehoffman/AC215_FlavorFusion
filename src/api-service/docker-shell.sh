@@ -6,7 +6,7 @@ set -e
 # Define some environment variables
 export IMAGE_NAME="test-api"
 export BASE_DIR=$(pwd)
-export SECRETS_DIR=$(pwd)
+export SECRETS_DIR=$(pwd)/../../../secrets/
 export PERSISTENT_DIR=$(pwd)
 export GCS_BUCKET_NAME=""
 
@@ -21,4 +21,5 @@ docker run --rm --name $IMAGE_NAME -ti \
 -p 9000:9000 \
 -e DEV=1 \
 -e GCS_BUCKET_NAME=$GCS_BUCKET_NAME \
+-e GOOGLE_APPLICATION_CREDENTIALS=/secrets/google_secrets.json \
 $IMAGE_NAME
