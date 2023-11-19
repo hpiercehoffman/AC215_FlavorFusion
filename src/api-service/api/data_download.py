@@ -22,7 +22,6 @@ def download_reviews():
     bucket = storage_client.bucket(bucket_name)
     blobs = bucket.list_blobs(prefix="combined-data/")
     for blob in blobs:
-        print(blob.name)
         if not blob.name.endswith("combined-data/"):
             print("Downloading data file:", blob.name)
             filename = os.path.basename(blob.name)

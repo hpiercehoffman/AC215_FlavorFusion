@@ -22,4 +22,5 @@ docker run --rm --name $IMAGE_NAME -ti \
 -e DEV=1 \
 -e GCS_BUCKET_NAME=$GCS_BUCKET_NAME \
 -e GOOGLE_APPLICATION_CREDENTIALS=/secrets/google_secrets.json \
+--privileged \
 $IMAGE_NAME
