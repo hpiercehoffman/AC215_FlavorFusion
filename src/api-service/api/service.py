@@ -10,6 +10,8 @@ from api import model_inference
 
 app = FastAPI(title="API Server", description="API Server", version="v1")
 
+df = pd.read_csv('./combined-data-combined_Massachusetts_small.csv', index_col=0)
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=False,
@@ -18,24 +20,48 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class Reviews(BaseModel):
-    reviews: str
+def get_reviews(hotel):
+    text = df[df['Name'] == hotel]['text']
+    return list(text)[0]
+
+# class Reviews(BaseModel):
+#     reviews: str
+
+class HotelRequest(BaseModel):
+    hotel: str
 
 @app.get("/")
 async def get_index():
     return {"message": "Welcome to the API Service"}
 
+@app.get("/populate")
+async def populate():
+    return df['Name'].tolist()
+
 
 @app.post("/predict")
-async def predict(reviews: Reviews):
+async def predict(hotel: HotelRequest):
+
+    reviews = get_reviews(hotel.hotel)
     
-    summary = model_inference.generate_summary(reviews.reviews)
+    summary = model_inference.generate_summary(reviews)
     
     prediction_results = {
         "summary": summary
     }
     
     return prediction_results
+
+# @app.post("/predict")
+# async def predict(reviews: Reviews):
+    
+#     summary = model_inference.generate_summary(reviews.reviews)
+    
+#     prediction_results = {
+#         "summary": summary
+#     }
+    
+#     return prediction_results
 
 
 
