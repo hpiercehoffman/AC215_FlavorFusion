@@ -93,13 +93,27 @@ For a full list of external references used in this project, please refer to our
 ## Milestone 5 Deliverables ##
 
 This milestone deals with front-end architecture and API development.
-- For information on data preprocessing, see our [Milestone 2 report](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/reports/milestone2.md). Data preprocessing takes place in the **preprocess_google** and **preprocess_lsars** Docker containers.
-- For information on model training, see our [Milestone 3 report](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/reports/milestone3.md). Model training takes place in the **train** Docker container.
-- For information on model deployment, see (insert link)
+- For information on data preprocessing, see our [Milestone 2 report](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/reports/milestone2.md). Data preprocessing takes place in the **preprocess_google** and **preprocess_lsars** Docker containers.
+- For information on model training, see our [Milestone 3 report](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/reports/milestone3.md). Model training takes place in the **train** Docker container.
+- For information on model optimization and deployment, see our [Milestone 4 report](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/reports/milestone4.md). The scripts in the **inference_cloud_functions** directory are used for model deployment.
 
 ### Application Design ###
 
-(Solution and technical architecture)
+At this point in our development process, we created **design documents** showing the high-level architecture of our app. We created a **solution architecture** which shows the high-level strategy of our entire project, as well as a **technical architecture** which provides implementation details about how the different components of the project work together. We will discuss both design documents below. 
+
+Note that these design documents represent a *final* implementation, meaning that some of the work is not yet completed in this milestone. We note the pending work below each image.
+
+**Solution Architecture**
+
+![image](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/images/solution_architecture.png)
+
+Our solution architecture shows the flow of **processes** (tasks performed by developers and users), **execution** (code running in different parts of the project pipeline), and **state** (stored objects and artifacts). In this view of the project, we abstract away technical details.
+
+*Pending work:* Currently, we have not yet implemented HTTPS communication between the API service and the deployment stage of the ML pipeline. Instead, the API service downloads a trained model from Weights & Biases (W&B). In our final implementation, the API service will communicate with a deployed model (e.g. a cloud function). 
+
+**Technical Architecture**
+
+![image](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/images/technical_architecture.png)
 
 ### Frontend App ###
 
