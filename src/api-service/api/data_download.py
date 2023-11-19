@@ -20,10 +20,10 @@ def download_reviews():
     # Initiate storage client and download data
     storage_client = storage.Client()
     bucket = storage_client.bucket(bucket_name)
-    blobs = bucket.list_blobs(prefix="combined-data//")
+    blobs = bucket.list_blobs(prefix="combined-data/")
     for blob in blobs:
         print(blob.name)
-        if not blob.name.endswith("combined-data//"):
+        if not blob.name.endswith("combined-data/"):
             print("Downloading data file:", blob.name)
             filename = os.path.basename(blob.name)
             local_file_path = os.path.join(dataset_folder, filename)
