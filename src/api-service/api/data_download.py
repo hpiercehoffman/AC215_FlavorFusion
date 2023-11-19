@@ -21,7 +21,7 @@ def download_reviews():
     blob.download_to_filename(local_file_path)
      
     small_file_path = local_file_path
-    return small_file_path, small_file_path
+    return small_file_path
 
 
 if __name__ == "__main__":

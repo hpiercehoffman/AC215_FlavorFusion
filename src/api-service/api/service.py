@@ -33,8 +33,9 @@ async def get_index():
 
 @app.get("/populate")
 async def populate():
+    global df
 
-    small_file_path, large_file_path = data_download.download_reviews()
+    small_file_path = data_download.download_reviews()
     df = pd.read_csv(small_file_path, index_col=0)
 
     return df['Name'].tolist()
