@@ -20,6 +20,8 @@ Project Organization
       │   ├── eval_metrics.png
       │   ├── pruning_results_example.png
       │   ├── serverless_no_quota.png
+      │   ├── solution_architecture.png
+      │   ├── technical_architecture.png
       │   └── train_loss_smoothed.png
       ├── requirements.txt
       └── src
@@ -109,11 +111,15 @@ Note that these design documents represent a *final* implementation, meaning tha
 
 Our solution architecture shows the flow of **processes** (tasks performed by developers and users), **execution** (code running in different parts of the project pipeline), and **state** (stored objects and artifacts). In this view of the project, we abstract away technical details.
 
-*Pending work:* Currently, we have not yet implemented HTTPS communication between the API service and the deployment stage of the ML pipeline. Instead, the API service downloads a trained model from Weights & Biases (W&B). In our final implementation, the API service will communicate with a deployed model (e.g. a cloud function). 
+*Pending work:* Currently, we have not yet implemented HTTPS communication between the API service and the deployment stage of the ML pipeline. Instead, the API service downloads a trained model from WandB. In our final implementation, the API service will communicate with a deployed model (e.g. a cloud function). 
 
 **Technical Architecture**
 
 ![image](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/images/technical_architecture.png)
+
+Our technical architecture provides a detailed view of the project structure, including components responsible for different actions and communication between these components.
+
+*Pending work:* Currently, we have not yet implemented a Nginx container to handle communication between the frontend and the API service. Instead, the frontend communicates directly with the API service via a local port. In our final implementation, we will run a Nginx container on our VM or within a Kubernetes cluster, so that Nginx can act as a reverse proxy to forward requests from the frontend container to the API container.
 
 ### Frontend App ###
 
@@ -128,7 +134,8 @@ This directory contains code which doesn't belong to a specific container:
 ### reports ###
 This directory contains our reports from past milestones:
 - [Milestone 2](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/reports/milestone2.md): Data preprocessing, Label Studio, and DVC.
-- [Milestone 3](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/reports/milestone3.md): Model training, VM setup, and experiment tracking. 
+- [Milestone 3](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/reports/milestone3.md): Model training, VM setup, and experiment tracking.
+- [Milestone 4](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/reports/milestone4.md): Model optimization and model deployment.
 
 ### references ###  
 This directory contains information on models, datasets, and other external references used in this project. References are detailed in [references.md](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/references/references.md).
