@@ -8,7 +8,7 @@ export IMAGE_NAME="test-api"
 export BASE_DIR=$(pwd)
 export SECRETS_DIR=$(pwd)/../../../secrets/
 export PERSISTENT_DIR=$(pwd)
-export GCS_BUCKET_NAME=""
+export GCS_BUCKET_NAME="reviews-data"
 
 # Build the image based on the Dockerfile
 docker build -t $IMAGE_NAME -f Dockerfile .

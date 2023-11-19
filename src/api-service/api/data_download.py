@@ -13,8 +13,8 @@ def download_reviews():
     print("Downloading data from " + str(bucket_name))
     
     # Clear existing dataset folders so we get a clean copy
-    dataset_folder = "data/"
-    shutil.rmtree(dataset_folder, ignore_errors=True, onerror=None)
+    dataset_folder = "./"
+    #shutil.rmtree(dataset_folder, ignore_errors=True, onerror=None)
     os.makedirs(dataset_folder, exist_ok=True)
 
     # Initiate storage client and download data
