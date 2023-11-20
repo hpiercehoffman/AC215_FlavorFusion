@@ -103,12 +103,14 @@
     <div id="swagger-ui"></div>
 
     <script>
+        // Axios routes API calls to port 9000 on local machine
         axios.defaults.baseURL = "http://localhost:9000/";
 
         document.addEventListener('DOMContentLoaded', function() {
             populateDropdown();
         });
 
+        // Populate dropodown menu based on results of API call
         function populateDropdown() {
             axios.get('/populate')
                 .then(response => {
@@ -123,6 +125,7 @@
                 .catch(error => console.error('Error:', error));
         }
 
+        // Send a restaurant's reviews for summarization and receive result
         function sendrestaurant() {
             const output = document.getElementById('output');
             output.innerHTML = '<div class="loader"></div>';

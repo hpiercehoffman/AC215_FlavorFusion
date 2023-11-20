@@ -21,6 +21,8 @@ docker run --rm --name $IMAGE_NAME -ti \
 -p 9000:9000 \
 -e DEV=1 \
 -e WANDB_KEY=$(cat ../../../secrets/wandb_key.txt) \
+-e GOOGLE_APPLICATION_CREDENTIALS=/secrets/google_secrets.json \
 -e GCS_BUCKET_NAME=$GCS_BUCKET_NAME \
+--privileged \
 $IMAGE_NAME
-cat: h: No such file or directory
+

@@ -102,9 +102,13 @@ def inference_batch(examples, model, tokenizer, max_len=512, num_beams=3):
     return result
 
 def generate_summary(text, use_finetuned=False):
+    """Generate a summary of a group of reviews. Load the appropriate model,
+    tokenize the reviews, and perform inference.
+    """
 
+    # If we are using our finetuned model, download from wandb, checking to 
+    # see if the model has already been downloaded
     if use_finetuned:
-        # make func
         wandb_download_folder = 'flavorfusion-team/FlavorFusion/model-w10g07vv:v0'
         local_download_folder = "./model-w10g07vv:v0"
         if not os.path.exists(local_download_folder):
@@ -119,6 +123,9 @@ def generate_summary(text, use_finetuned=False):
         else:
             artifact_dir = local_download_folder
         model_name = artifact_dir
+
+    # If we are not using our finetuned model, we use the original PRIMERA
+    # model trained on multi-news summarization
     else:
         model_name = 'allenai/PRIMERA-multinews'
 
@@ -141,7 +148,7 @@ def generate_summary(text, use_finetuned=False):
         fn_kwargs=fn_kwargs,
         batched=True,
         num_proc=1,
-        desc="Running tokenizer dataset")
+        desc="Running tokenizer on dataset")
 
     fn_kwargs = {'model': model, 'tokenizer': tokenizer, 'max_len': 128, 'num_beams': 1}
     x = dataset.map(inference_batch, fn_kwargs=fn_kwargs, batched=True, batch_size=1)
@@ -151,9 +158,6 @@ def generate_summary(text, use_finetuned=False):
 
     return x[0]['generated_summaries']
 
-
-# if __name__ == "__main__":
-#     main('hi|||||hi')
 
 
 
