@@ -6,9 +6,9 @@ set -e
 # Define some environment variables
 export IMAGE_NAME="test-api"
 export BASE_DIR=$(pwd)
-export SECRETS_DIR=$(pwd)/../../../secrets/
+export SECRETS_DIR=$(pwd)
 export PERSISTENT_DIR=$(pwd)
-export GCS_BUCKET_NAME="reviews-data"
+export GCS_BUCKET_NAME=""
 
 # Build the image based on the Dockerfile
 docker build -t $IMAGE_NAME -f Dockerfile .
@@ -20,7 +20,7 @@ docker run --rm --name $IMAGE_NAME -ti \
 -v "$PERSISTENT_DIR":/persistent \
 -p 9000:9000 \
 -e DEV=1 \
+-e WANDB_KEY=$(cat ../../../secrets/wandb_key.txt) \
 -e GCS_BUCKET_NAME=$GCS_BUCKET_NAME \
--e GOOGLE_APPLICATION_CREDENTIALS=/secrets/google_secrets.json \
---privileged \
 $IMAGE_NAME
+cat: h: No such file or directory
