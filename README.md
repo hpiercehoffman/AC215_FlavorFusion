@@ -128,7 +128,7 @@ The screenshot below shows our prototype front-end. For full details of how to r
 We used FastAPI to create backend RESTful APIs which handle communication with the frontend. We implemented the following APIs:
 - `/`: Default API call. GET method which returns a welcome message.
 - `/populate`: GET method which downloads a subset of our data from a GCS bucket and extracts a list of restaurant names. Restaurant names are then used to populate a dropdown menu in the frontend.
-- `/predict`: POST method which runs model inference for a selected restaurant, generating a summary of 5 random reviews from the selected restaurant. Future implementations of this API will include options to summarize a specific group of reviews based on estimated cultural background of reviewers.
+- `/predict`: POST method which runs model inference for a selected restaurant, generating a summary of reviews from the selected restaurant. Future implementations of this API will include options to summarize a specific group of reviews based on estimated cultural background of reviewers.
 
 In addition to testing our APIs by interacting with the frontend, we also used Swagger's [API testing kit](https://swagger.io/solutions/api-testing/) to verify that all APIs are working correctly. The screenshots below show the results of testing each of our three APIs with Swagger. All APIs are working as expected.
 
@@ -172,18 +172,20 @@ Below, we describe the steps to reproduce our development configuration.
 3. Clone our repository on the VM and build the `test-api` Docker image:
    `git clone https://github.com/hpiercehoffman/AC215_FlavorFusion.git`
 4. Set up secrets files at the same directory level as the project repository (not inside the repo). We added a `google_secrets.json` file with the credentials for our service account (necessary to download files from our GCS bucket), and a `wandb_key.txt` file with our WandB API key (necessary to download our trained model from WandB).
-5. Run the dockerfile for our API server:
+5. It may be necessary to change permissions of the directory where the Docker container will download files. You can change permissions as follows, so the Docker container will have permission to download the model and data:
+   `sudo chmod 777 AC215_FlavorFusion/src/api-service/`
+7. Run the dockerfile for our API server:
    `cd AC215_FlavorFusion/src/api-service/`
    `sh docker-shell.sh`
-6. This should build and run a Docker container called `test-api`. Once the Docker container is running, start the Uvicorn server:
+8. This should build and run a Docker container called `test-api`. Once the Docker container is running, start the Uvicorn server:
    `uvicorn_server_production`
-7. The Uvicorn server is now running on port 9000 of the Docker container, which is connected to port 9000 on the GCP VM. Port 9000 on the VM is also connected to port 9000 on your local machine via SSH connection.
-8. Now we can run the frontend on local. Ensure that our repo is cloned on your local machine. Run the dockerfile for the frontend server:
+9. The Uvicorn server is now running on port 9000 of the Docker container, which is connected to port 9000 on the GCP VM. Port 9000 on the VM is also connected to port 9000 on your local machine via SSH connection.
+10. Now we can run the frontend on local. Ensure that our repo is cloned on your local machine. Run the dockerfile for the frontend server:
    `cd AC215_FlavorFusion/src/frontend-simple`
    `sh docker-shell.sh`
-9. This Docker will run with a connection between port 3000 in the Docker container and port 3000 on your local machine. Therefore, you should run the frontend server on port 3000:
+11. This Docker will run with a connection between port 3000 in the Docker container and port 3000 on your local machine. Therefore, you should run the frontend server on port 3000:
     `http-server -p 3000`
-10. Once the HTTP server is running, you should be able to visit `localhost:3000` in your browser and see the FlavorFusion homepage. API calls made from this frontend are routed via Axios to port 9000 on your local machine. Since port 9000 on your local machine is connected to the VM and the Docker, you'll be able to send and receive information from the Uvicorn server.
+12. Once the HTTP server is running, you should be able to visit `localhost:3000` in your browser and see the FlavorFusion homepage. API calls made from this frontend are routed via Axios to port 9000 on your local machine. Since port 9000 on your local machine is connected to the VM and the Docker, you'll be able to send and receive information from the Uvicorn server.
 
 # References #
 
