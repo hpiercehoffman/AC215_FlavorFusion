@@ -14,15 +14,7 @@ Project Organization
       │   ├── milestone3.md
       │   └── milestone4.md
       ├── images
-      │   ├── cloud_function_dashboard.png
-      │   ├── cloud_function_url_example.png
-      │   ├── custom_jobs_example.png
-      │   ├── eval_metrics.png
-      │   ├── pruning_results_example.png
-      │   ├── serverless_no_quota.png
-      │   ├── solution_architecture.png
-      │   ├── technical_architecture.png
-      │   └── train_loss_smoothed.png
+      │   └── [Screenshots showing project functionality]
       ├── requirements.txt
       └── src
             ├── docker-volumes
@@ -123,6 +115,13 @@ Our technical architecture provides a detailed view of the project structure, in
 
 ### Frontend App ###
 
+We implemented a prototype frontend app using HTML and Javascript. The app shows a simple front page where the user can select a restaurant from a dropdown menu. The dropdown menu is populated based on data downloaded from our GCS bucket. The user can click the "Submit" button to generate a summary of 5 random reviews from the selected restaurant. In the final implementation, we will generate multiple summaries for groups of reviews which are stratified by estimated cultural background. 
+
+We also include a Swagger API testing interface in the prototype front-end, so we can easily test our APIs. We'll discuss each API in more detail in the next section.
+
+The screenshot below shows our prototype front-end.
+
+![image](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/images/frontend_with_swagger.png)
 
 ### Backend API ###
 
