@@ -167,24 +167,24 @@ For our prototype implementation in this milestone, we ran the backend API servi
 Below, we describe the steps to reproduce our development configuration.
 
 1. Create a GCP VM instance with a Nvidia L4 GPU. Install Nvidia drivers and Docker. HTTP traffic should be enabled, although we use SSH in this prototype implementation.
-2. Connect to the VM, opening an SSH tunnel from port 9000 of the VM to port 9000 on your local machine:
-   `gcloud compute ssh primera-gpu-200 -- -L 9000:localhost:9000`
-3. Clone our repository on the VM and build the `test-api` Docker image:
+2. Connect to the VM, opening an SSH tunnel from port 9000 of the VM to port 9000 on your local machine:  
+   `gcloud compute ssh primera-gpu-200 -- -L 9000:localhost:9000`  
+3. Clone our repository on the VM and build the `test-api` Docker image:  
    `git clone https://github.com/hpiercehoffman/AC215_FlavorFusion.git`
 4. Set up secrets files at the same directory level as the project repository (not inside the repo). We added a `google_secrets.json` file with the credentials for our service account (necessary to download files from our GCS bucket), and a `wandb_key.txt` file with our WandB API key (necessary to download our trained model from WandB).
-5. It may be necessary to change permissions of the directory where the Docker container will download files. You can change permissions as follows, so the Docker container will have permission to download the model and data:
-   `sudo chmod 777 AC215_FlavorFusion/src/api-service/`
-7. Run the dockerfile for our API server:
-   `cd AC215_FlavorFusion/src/api-service/`
-   `sh docker-shell.sh`
-8. This should build and run a Docker container called `test-api`. Once the Docker container is running, start the Uvicorn server:
-   `uvicorn_server_production`
+5. It may be necessary to change permissions of the directory where the Docker container will download files. You can change permissions as follows, so the Docker container will have permission to download the model and data:  
+   `sudo chmod 777 AC215_FlavorFusion/src/api-service/`  
+7. Run the dockerfile for our API server:  
+   `cd AC215_FlavorFusion/src/api-service/`  
+   `sh docker-shell.sh`  
+8. This should build and run a Docker container called `test-api`. Once the Docker container is running, start the Uvicorn server:  
+   `uvicorn_server_production`  
 9. The Uvicorn server is now running on port 9000 of the Docker container, which is connected to port 9000 on the GCP VM. Port 9000 on the VM is also connected to port 9000 on your local machine via SSH connection.
-10. Now we can run the frontend on local. Ensure that our repo is cloned on your local machine. Run the dockerfile for the frontend server:
-   `cd AC215_FlavorFusion/src/frontend-simple`
-   `sh docker-shell.sh`
-11. This Docker will run with a connection between port 3000 in the Docker container and port 3000 on your local machine. Therefore, you should run the frontend server on port 3000:
-    `http-server -p 3000`
+10. Now we can run the frontend on local. Ensure that our repo is cloned on your local machine. Run the dockerfile for the frontend server:  
+   `cd AC215_FlavorFusion/src/frontend-simple`  
+   `sh docker-shell.sh`  
+11. This Docker will run with a connection between port 3000 in the Docker container and port 3000 on your local machine. Therefore, you should run the frontend server on port 3000:  
+    `http-server -p 3000`  
 12. Once the HTTP server is running, you should be able to visit `localhost:3000` in your browser and see the FlavorFusion homepage. API calls made from this frontend are routed via Axios to port 9000 on your local machine. Since port 9000 on your local machine is connected to the VM and the Docker, you'll be able to send and receive information from the Uvicorn server.
 
 # References #
