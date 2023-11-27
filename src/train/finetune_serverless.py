@@ -57,6 +57,8 @@ def download_data(local_folder):
             filename = os.path.basename(blob.name)
             local_file_path = os.path.join(local_folder, filename)
             blob.download_to_filename(local_file_path)
+            os.rename(local_file_path, local_file_path+'.json')
+            print(local_file_path)
 
 
 def get_global_attention_mask(input_ids, token_ids):
@@ -291,7 +293,10 @@ def main(args):
         
     # Read all json files in the data folder
     data_files = {'train': os.path.join(args.input_dir, '*.json')}
+    print(data_files)
     raw_dataset = load_dataset('json', data_files=data_files, split='train', streaming=False)
+    
+    print(raw_dataset)
     
     # Shuffle dataset and create train-test split. If using streaming, training and test datasets must be split manually
     raw_dataset = raw_dataset.shuffle(seed=42)

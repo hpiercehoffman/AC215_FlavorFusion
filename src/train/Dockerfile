@@ -12,5 +12,5 @@ RUN cd /app
 RUN pip install -r requirements.txt
 
 # Entry point
-ENTRYPOINT ["python","train_serverless.py"]
+ENTRYPOINT ["python","finetune_serverless.py"]
 
