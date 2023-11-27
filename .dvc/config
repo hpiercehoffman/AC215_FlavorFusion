@@ -1,0 +1,4 @@
+['remote "lsars-data"']
+    url = gs://lsars-data/dvc_store
+['remote "reviews-data"']
+    url = gs://reviews-data/dvc_store
