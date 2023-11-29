@@ -60,7 +60,7 @@
           - auto_delete: true
             boot: true
             initialize_params:
-                source_image: "projects/debian-cloud/global/images/family/debian-11"
+                source_image: "projects/deeplearning-platform-release/global/images/common-gpu-v20230822-debian-11-py310"
                 disk_size_gb: "{{ machine_disk_size }}"
           - auto_delete: false
             boot: false

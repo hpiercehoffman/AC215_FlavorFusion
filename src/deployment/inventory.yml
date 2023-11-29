@@ -12,7 +12,7 @@ all:
       docker_network_name: "appnetwork"
       persistent_disk_name: "flavor-fusion-disk"
       persistent_disk_size: 50
-      machine_instance_name: "flavor-fusion-demo"
+      machine_instance_name: "flavor-fusion-demo2"
       maintenance-policy: TERMINATE 
       machine_type: "g2-standard-4"
       machine_disk_size: 50
