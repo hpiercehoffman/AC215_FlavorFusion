@@ -17,3 +17,6 @@ src/train/trainer.tar.gz
 
 # Jupyter files
 *.ipynb_checkpoints*
+
+# Docker tag file
+src/deployment/.docker-tag
