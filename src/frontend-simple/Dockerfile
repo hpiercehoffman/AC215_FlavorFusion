@@ -16,4 +16,4 @@ EXPOSE 3000
 USER app
 WORKDIR /app
 
-ENTRYPOINT ["/bin/bash"]
+ENTRYPOINT ["http-server", "-p", "3000"]
