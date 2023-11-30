@@ -15,6 +15,11 @@
         src: ../secrets/gcp-service.json
         dest: "/srv/secrets/gcp-service.json"
         mode: 0644
+    - name: Copy wandb key file
+      copy:
+        src: ../secrets/wandb_key.txt
+        dest: "/srv/secrets/wandb_key.txt"
+        mode: 0644
     - name: Authenticate gcloud using service account
       shell: "gcloud auth activate-service-account --key-file /srv/secrets/gcp-service.json"
     
@@ -66,7 +71,6 @@
           - 9000:9000
         env:
           GOOGLE_APPLICATION_CREDENTIALS: "/secrets/gcp-service.json"
-          WANDB_KEY: $(cat /secrets/wandb_key.txt)
           GCS_BUCKET_NAME: "reviews-data"
         networks:
           - name: "{{docker_network_name}}"

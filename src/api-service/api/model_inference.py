@@ -109,13 +109,18 @@ def generate_summary(text, use_finetuned=False):
     # If we are using our finetuned model, download from wandb, checking to 
     # see if the model has already been downloaded
     if use_finetuned:
+        
+        file_path = "../../secrets/wandb_key.txt"
+        with open(file_path, "r") as wandb_file:
+            key = wandb_file.readline().strip()
+        
         wandb_download_folder = 'flavorfusion-team/FlavorFusion/model-w10g07vv:v0'
         local_download_folder = "./model-w10g07vv:v0"
         if not os.path.exists(local_download_folder):
             os.environ["WANDB_PROJECT"]="FlavorFusion"
             os.environ["WANDB_LOG_MODEL"]="false"
             os.environ["WANDB_WATCH"]="false"
-            wandb.login(key=os.environ['WANDB_KEY'])
+            wandb.login(key=key)
             api = wandb.Api()
             artifact = api.artifact(wandb_download_folder)
             artifact_dir = artifact.download(root=local_download_folder)
