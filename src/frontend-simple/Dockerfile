@@ -16,4 +16,7 @@ EXPOSE 3000
 USER app
 WORKDIR /app
 
+ADD --chown=app:app . /app
+
 ENTRYPOINT ["http-server", "-p", "3000"]
+#ENTRYPOINT ["/bin/bash"]
