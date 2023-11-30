@@ -114,8 +114,8 @@ def generate_summary(text, use_finetuned=False):
         with open(file_path, "r") as wandb_file:
             key = wandb_file.readline().strip()
         
-        wandb_download_folder = 'flavorfusion-team/FlavorFusion/model-w10g07vv:v0'
-        local_download_folder = "./model-w10g07vv:v0"
+        wandb_download_folder = 'flavorfusion-team/FlavorFusion/model-pu67h5bz:v0'
+        local_download_folder = "./model-pu67h5bz:v0"
         if not os.path.exists(local_download_folder):
             os.environ["WANDB_PROJECT"]="FlavorFusion"
             os.environ["WANDB_LOG_MODEL"]="false"
