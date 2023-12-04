@@ -40,6 +40,9 @@ def get_reviews(restaurant):
             text = race_df['text']
             reviews.append(list(text)[0])
             info_races.append(race)
+
+    print(reviews)
+
     return reviews, info_races
 
 class RestaurantRequest(BaseModel):
@@ -76,7 +79,7 @@ async def predict(restaurant: RestaurantRequest):
 
     paragraph = "<br/>"
     for race, review in race_summary_dict.items():
-        paragraph += f"Here's what people of {race} descent think:<br/> {review}<br/>"
+        paragraph += f"Here's what people of {race} descent think:<br/> {review}<br/><br/>"
 
     prediction_results = {
     "summary": paragraph

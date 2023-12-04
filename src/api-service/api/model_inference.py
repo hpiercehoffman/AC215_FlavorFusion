@@ -143,6 +143,9 @@ def generate_summary(text, use_finetuned=False):
     
     my_input = {"review": text}
     dataset = Dataset.from_dict(my_input)
+
+    for i in range(len(dataset)):
+        print(dataset[i])
     
     fn_kwargs = {'text_column': 'review', 
                  'tokenizer': tokenizer,
