@@ -104,7 +104,8 @@
 
     <script>
         // Axios routes API calls to /api on local machine
-        axios.defaults.baseURL = "/api/";
+        // axios.defaults.baseURL = "/api/";
+        axios.defaults.baseURL = "http://localhost:9000/";
 
         document.addEventListener('DOMContentLoaded', function() {
             populateDropdown();
@@ -146,7 +147,8 @@
     <script>
         window.onload = () => {
             window.ui = SwaggerUIBundle({
-            url: '/api/openapi.json',
+            url: 'http://localhost:9000/openapi.json',
+            // url: '/api/openapi.json',
             dom_id: '#swagger-ui',
             presets: [
                 SwaggerUIBundle.presets.apis,

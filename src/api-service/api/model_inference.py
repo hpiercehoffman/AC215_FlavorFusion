@@ -141,7 +141,7 @@ def generate_summary(text, use_finetuned=False):
     model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
     model.resize_token_embeddings(len(tokenizer))
     
-    my_input = {"review": [text]}
+    my_input = {"review": text}
     dataset = Dataset.from_dict(my_input)
     
     fn_kwargs = {'text_column': 'review', 
@@ -161,7 +161,9 @@ def generate_summary(text, use_finetuned=False):
     elapsed_time = time.time() - start_time
     print("Elapsed time for inference: " + str(elapsed_time))
 
-    return x[0]['generated_summaries']
+    print(x)
+
+    return x['generated_summaries']
 
 
 

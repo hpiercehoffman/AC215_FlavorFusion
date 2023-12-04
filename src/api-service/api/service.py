@@ -19,10 +19,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+races = ['Western European', 'African', 'South Asian', 'Jewish', 'East Asian']
+
 def get_reviews(restaurant):
     """Helper function to get all reviews for a specific restaurant"""
-    text = df[df['Name'] == restaurant]['text']
-    return list(text)[0]
+    df = df[df['Name'] == restaurant]
+
+    reviews = []
+    info_races = []
+    for race in races:
+        race_df = df[df['race'] == race]
+        if race_df.shape[0] > 0:
+            race_df = race_df.groupby(["Name", "address"]).agg({"text": "|||||".join}).reset_index()
+            text = race_df['text']
+            reviews.append(list(text)[0])
+            info_races.append(race)
+    return reviews, info_races
 
 class RestaurantRequest(BaseModel):
     """Pydantic object so we can send strings in correct format for API"""
@@ -53,12 +65,18 @@ async def populate():
 async def predict(restaurant: RestaurantRequest):
     """Run model inference to generate summary of reviews for chosen restaurant"""
 
-    reviews = get_reviews(restaurant.restaurant)
+    reviews, races_info = get_reviews(restaurant.restaurant)
     # We can choose whether to use our finetuned model or the original model 
     # trained on multi-news summarization
-    summary = model_inference.generate_summary(reviews, use_finetuned = True)
+    summaries = model_inference.generate_summary(reviews, use_finetuned = True)
+
+    race_summary_dict = {race: 'Not enough reviews' for race in races}
+
+    for race_info, summary in zip(races_info, summaries):
+        race_summary_dict[race_info] = summary
+
     prediction_results = {
-        "summary": summary
+        "summary": summaries[0]
     }
     
     return prediction_results
