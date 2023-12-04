@@ -96,17 +96,7 @@
             <!-- Dropdown options will be populated here -->
         </select>
         <button onclick="sendrestaurant()">Submit</button>
-
-        <div id="westernEuropeanOutput" class="race-output">Here is what people of Western European descent feel:</div>
-        <div id="africanOutput" class="race-output">Here is what people of African descent feel:</div>
-        <div id="southAsianOutput" class="race-output">Here is what people of South Asian descent feel:</div>
-        <div id="jewishOutput" class="race-output">Here is what people of Jewish descent feel:</div>
-        <div id="eastAsianOutput" class="race-output">Here is what people of East Asian descent feel:</div>
-        <div id="easternEuropeanOutput" class="race-output">Here is what people of Eastern European descent feel:</div>
-        <div id="nordicOutput" class="race-output">Here is what people of Nordic descent feel:</div>
-
-
-
+        <div id="output"></div>
     </div>
 
     <!-- Swagger UI -->
@@ -143,13 +133,7 @@
             const selectedrestaurant = document.getElementById('restaurantDropdown').value;
             axios.post('/predict', { restaurant: selectedrestaurant })
                 .then(response => {
-                    document.getElementById('westernEuropeanOutput').innerHTML += response.data.westernEuropean;
-                    document.getElementById('africanOutput').innerHTML += response.data.african;
-                    document.getElementById('southAsianOutput').innerHTML += response.data.southAsian;
-                    document.getElementById('jewishOutput').innerHTML += response.data.jewish;
-                    document.getElementById('eastAsianOutput').innerHTML += response.data.eastAsian;
-                    document.getElementById('easternEuropeanOutput').innerHTML += response.data.easternEuropeanOutput;
-                    document.getElementById('nordicOutput').innerHTML += response.data.nordicOutput;
+                    output.innerHTML = 'Output: ' + response.data.summary;
                 })
                 .catch(error => {
                     console.error('Error:', error);

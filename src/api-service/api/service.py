@@ -74,14 +74,12 @@ async def predict(restaurant: RestaurantRequest):
     for race_info, summary in zip(races_info, summaries):
         race_summary_dict[race_info] = summary
 
+    paragraph = ""
+    for race, review in race_summary_dict.items():
+        paragraph += f"Here's what people of {race} think:/n {review}/n"
+
     prediction_results = {
-        "westernEuropean": race_summary_dict['Western European'],
-        "africanOutput": race_summary_dict['African'],
-        "southAsianOutput": race_summary_dict['South Asian'],
-        "jewishOutput": race_summary_dict['Jewish'],
-        "eastAsianOutput": race_summary_dict['East Asian'],
-        "easternEuropeanOutput": race_summary_dict['Eastern European'],
-        "nordicOutput": race_summary_dict['Nordic'],
+    "summary": paragraph
     }
     
     return prediction_results
