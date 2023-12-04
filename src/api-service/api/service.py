@@ -58,7 +58,7 @@ async def populate():
     df = pd.read_csv(small_file_path, index_col=0)
 
     # Return names of all restaurants
-    return df['Name'].tolist()
+    return df['Name'].unique().tolist()
 
 
 @app.post("/predict")
