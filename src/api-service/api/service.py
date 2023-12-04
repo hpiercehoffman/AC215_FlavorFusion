@@ -29,12 +29,12 @@ df = pd.read_csv(small_file_path, index_col=0)
 
 def get_reviews(restaurant):
     """Helper function to get all reviews for a specific restaurant"""
-    df = df[df['Name'] == restaurant]
+    df_res = df[df['Name'] == restaurant]
 
     reviews = []
     info_races = []
     for race in races:
-        race_df = df[df['race'] == race]
+        race_df = df_res[df_res['race'] == race]
         if race_df.shape[0] > 0:
             race_df = race_df.groupby(["Name", "address"]).agg({"text": "|||||".join}).reset_index()
             text = race_df['text']
