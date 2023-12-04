@@ -20,6 +20,12 @@ app.add_middleware(
 )
 
 races = ['Western European', 'African', 'South Asian', 'Jewish', 'East Asian']
+# Make this dataframe global so we can use it in predict function
+#global df
+
+# Download data file from GCS bucket and get its path
+small_file_path = data_download.download_reviews()
+df = pd.read_csv(small_file_path, index_col=0)
 
 def get_reviews(restaurant):
     """Helper function to get all reviews for a specific restaurant"""
@@ -49,13 +55,6 @@ async def get_index():
 @app.get("/populate")
 async def populate():
     """Populate the dropdown menu with list of restaurants"""
-    
-    # Make this dataframe global so we can use it in predict function
-    global df
-
-    # Download data file from GCS bucket and get its path
-    small_file_path = data_download.download_reviews()
-    df = pd.read_csv(small_file_path, index_col=0)
 
     # Return names of all restaurants
     return df['Name'].unique().tolist()
