@@ -161,8 +161,6 @@ def generate_summary(text, use_finetuned=False):
     elapsed_time = time.time() - start_time
     print("Elapsed time for inference: " + str(elapsed_time))
 
-    print(x)
-
     return x['generated_summaries']
 
 

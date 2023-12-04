@@ -19,13 +19,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-races = ['Western European', 'African', 'South Asian', 'Jewish', 'East Asian']
 # Make this dataframe global so we can use it in predict function
 #global df
 
 # Download data file from GCS bucket and get its path
 small_file_path = data_download.download_reviews()
 df = pd.read_csv(small_file_path, index_col=0)
+races = df.race.unique().tolist()
 
 def get_reviews(restaurant):
     """Helper function to get all reviews for a specific restaurant"""
@@ -75,7 +75,13 @@ async def predict(restaurant: RestaurantRequest):
         race_summary_dict[race_info] = summary
 
     prediction_results = {
-        "summary": summaries[0]
+        "westernEuropean": race_summary_dict['Western European'],
+        "africanOutput": race_summary_dict['African'],
+        "southAsianOutput": race_summary_dict['South Asian'],
+        "jewishOutput": race_summary_dict['Jewish'],
+        "eastAsianOutput": race_summary_dict['East Asian'],
+        "easternEuropeanOutput": race_summary_dict['Eastern European'],
+        "nordicOutput": race_summary_dict['Nordic'],
     }
     
     return prediction_results
