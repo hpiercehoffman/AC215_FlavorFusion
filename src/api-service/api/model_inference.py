@@ -155,8 +155,8 @@ def generate_summary(text, use_finetuned=False):
         num_proc=1,
         desc="Running tokenizer on dataset")
 
-    fn_kwargs = {'model': model, 'tokenizer': tokenizer, 'max_len': 256, 'num_beams': 1}
-    x = dataset.map(inference_batch, fn_kwargs=fn_kwargs, batched=True, batch_size=2)
+    fn_kwargs = {'model': model, 'tokenizer': tokenizer, 'max_len': 256, 'num_beams': 4}
+    x = dataset.map(inference_batch, fn_kwargs=fn_kwargs, batched=True, batch_size=1)
     
     elapsed_time = time.time() - start_time
     print("Elapsed time for inference: " + str(elapsed_time))

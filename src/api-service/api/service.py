@@ -35,7 +35,7 @@ def get_reviews(restaurant):
     info_races = []
     for race in races:
         race_df = df_res[df_res['race'] == race]
-        if race_df.shape[0] > 1:
+        if race_df.shape[0] > 2:
             race_df = race_df.groupby(["Name", "address"]).agg({"text": "|||||".join}).reset_index()
             text = race_df['text']
             reviews.append(list(text)[0])
