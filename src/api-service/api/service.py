@@ -74,9 +74,9 @@ async def predict(restaurant: RestaurantRequest):
     for race_info, summary in zip(races_info, summaries):
         race_summary_dict[race_info] = summary
 
-    paragraph = "\n"
+    paragraph = "<br/>"
     for race, review in race_summary_dict.items():
-        paragraph += f"Here's what people of {race} descent think:\n {review}\n"
+        paragraph += f"Here's what people of {race} descent think:<br/> {review}<br/>"
 
     prediction_results = {
     "summary": paragraph
