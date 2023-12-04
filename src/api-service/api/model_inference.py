@@ -143,9 +143,6 @@ def generate_summary(text, use_finetuned=False):
     
     my_input = {"review": text}
     dataset = Dataset.from_dict(my_input)
-
-    for i in range(len(dataset)):
-        print(dataset[i])
     
     fn_kwargs = {'text_column': 'review', 
                  'tokenizer': tokenizer,
@@ -158,8 +155,8 @@ def generate_summary(text, use_finetuned=False):
         num_proc=1,
         desc="Running tokenizer on dataset")
 
-    fn_kwargs = {'model': model, 'tokenizer': tokenizer, 'max_len': 128, 'num_beams': 1}
-    x = dataset.map(inference_batch, fn_kwargs=fn_kwargs, batched=True, batch_size=1)
+    fn_kwargs = {'model': model, 'tokenizer': tokenizer, 'max_len': 256, 'num_beams': 1}
+    x = dataset.map(inference_batch, fn_kwargs=fn_kwargs, batched=True, batch_size=2)
     
     elapsed_time = time.time() - start_time
     print("Elapsed time for inference: " + str(elapsed_time))
