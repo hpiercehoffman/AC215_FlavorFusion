@@ -19,10 +19,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Make this dataframe global so we can use it in predict function
+#global df
+
+# Download data file from GCS bucket and get its path
+small_file_path = data_download.download_reviews()
+df = pd.read_csv(small_file_path, index_col=0)
+races = df.race.unique().tolist()
+
 def get_reviews(restaurant):
     """Helper function to get all reviews for a specific restaurant"""
-    text = df[df['Name'] == restaurant]['text']
-    return list(text)[0]
+    df_res = df[df['Name'] == restaurant]
+
+    reviews = []
+    info_races = []
+    for race in races:
+        race_df = df_res[df_res['race'] == race]
+        if race_df.shape[0] > 2:
+            race_df = race_df.groupby(["Name", "address"]).agg({"text": "|||||".join}).reset_index()
+            text = race_df['text']
+            reviews.append(list(text)[0])
+            info_races.append(race)
+
+    return reviews, info_races
 
 class RestaurantRequest(BaseModel):
     """Pydantic object so we can send strings in correct format for API"""
@@ -37,28 +56,29 @@ async def get_index():
 @app.get("/populate")
 async def populate():
     """Populate the dropdown menu with list of restaurants"""
-    
-    # Make this dataframe global so we can use it in predict function
-    global df
-
-    # Download data file from GCS bucket and get its path
-    small_file_path = data_download.download_reviews()
-    df = pd.read_csv(small_file_path, index_col=0)
-
     # Return names of all restaurants
-    return df['Name'].tolist()
+    return df['Name'].unique().tolist()
 
 
 @app.post("/predict")
 async def predict(restaurant: RestaurantRequest):
     """Run model inference to generate summary of reviews for chosen restaurant"""
 
-    reviews = get_reviews(restaurant.restaurant)
+    reviews, races_info = get_reviews(restaurant.restaurant)
     # We can choose whether to use our finetuned model or the original model 
     # trained on multi-news summarization
-    summary = model_inference.generate_summary(reviews, use_finetuned = True)
+    summaries = model_inference.generate_summary(reviews, use_finetuned = True)
+
+    race_summary_dict = {race: 'Not enough reviews' for race in races}
+
+    for race_info, summary in zip(races_info, summaries):
+        race_summary_dict[race_info] = summary
+
+    paragraph = "<br/>"
+    for race, review in race_summary_dict.items():
+        paragraph += f"Here's what people of {race} descent think:<br/> {review}<br/><br/>"
     prediction_results = {
-        "summary": summary
+        "summary": paragraph
     }
     
     return prediction_results
