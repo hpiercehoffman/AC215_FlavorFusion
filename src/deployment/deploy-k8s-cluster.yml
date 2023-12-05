@@ -59,7 +59,7 @@
   #   when: cluster_state == "present"
   
   - name: "Connect to cluster (update kubeconfig)"
-    shell: "gcloud container clusters get-credentials {{ cluster.name }} --zone {{ gcp_zone }} --project {{ gcp_project }}"
+    shell: "gcloud container clusters get-credentials {{ cluster_name }} --zone {{ gcp_zone }} --project {{ gcp_project }}"
     when: cluster_state == "present"
 
   - name: "Create Namespace"
@@ -197,6 +197,9 @@
                 - name: google-cloud-key
                   secret:
                     secretName: gcp-service-key
+                - name: wandbkey
+                  secret:
+                    secretName: wandbkey
               containers:
               - image: gcr.io/{{ gcp_project }}/flavor-fusion-api-service:{{ tag.stdout}}
                 imagePullPolicy: IfNotPresent
@@ -209,14 +212,16 @@
                     mountPath: /persistent
                     #readOnly: false
                   - name: google-cloud-key
-                    mountPath: /secrets
+                    mountPath: /secrets/gcp
+                  - name: wandbkey
+                    mountPath: /secrets/wandb
                 env:
                   - name: GOOGLE_APPLICATION_CREDENTIALS
-                    value: /secrets/gcp-service.json
+                    value: /secrets/gcp/gcp-service.json
                   - name: GCS_BUCKET_NAME
                     value: reviews-data
                   - name: WANDB_KEY
-                    value: /secrets/wandbkey.txt
+                    value: /secrets/wandb/wandbkey.txt
     when: cluster_state == "present"
 
   - name: "Create Service for Frontend"
