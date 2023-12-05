@@ -68,6 +68,7 @@ async def predict(restaurant: RestaurantRequest):
     # We can choose whether to use our finetuned model or the original model 
     # trained on multi-news summarization
     summaries = model_inference.generate_summary(reviews, use_finetuned = True)
+    #summaries = model_inference.generate_summary(reviews, use_finetuned = False)
 
     race_summary_dict = {race: 'Not enough reviews' for race in races}
 

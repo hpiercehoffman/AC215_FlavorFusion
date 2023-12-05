@@ -110,7 +110,8 @@ def generate_summary(text, use_finetuned=False):
     # see if the model has already been downloaded
     if use_finetuned:
         
-        file_path = "../../secrets/wandb_key.txt"
+        #file_path = "../../secrets/wandb_key.txt"
+        file_path = "../../secrets/wandb/wandbkey.txt"
         with open(file_path, "r") as wandb_file:
             key = wandb_file.readline().strip()
         

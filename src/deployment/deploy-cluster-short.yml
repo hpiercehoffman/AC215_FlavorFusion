@@ -1,5 +1,5 @@
 ---
-- name: "Create Kubernetes Cluster and deploy multiple containers"
+- name: "Update secrets and deploy containers to existing cluster"
   hosts: localhost
   gather_facts: false
 
@@ -10,56 +10,13 @@
     initial_node_count: 2
 
   tasks:
-  - name: "Create a GKE cluster"
-    google.cloud.gcp_container_cluster:
-      name: "{{cluster_name}}"
-      initial_node_count: "{{ initial_node_count }}"
-      location: "{{ gcp_zone }}"
-      project: "{{ gcp_project }}"
-      release_channel:
-        channel: "UNSPECIFIED"
-      ip_allocation_policy:
-        use_ip_aliases: "yes"
-      auth_kind: "{{ gcp_auth_kind }}"
-      service_account_file: "{{ gcp_service_account_file }}"
-      state: "{{ cluster_state }}"
-    register: cluster
-  
-  - name: "Create a Node Pool"
-    google.cloud.gcp_container_node_pool:
-      name: default-pool
-      initial_node_count: "{{ initial_node_count }}"
-      cluster: "{{ cluster }}"
-      location: "{{ gcp_zone }}"
-      project: "{{ gcp_project }}"
-      config:
-        machine_type: "{{ machine_type }}"
-        image_type: "cos_containerd"
-        disk_size_gb: "{{ machine_disk_size }}"
-        oauth_scopes:
-          - "https://www.googleapis.com/auth/devstorage.read_only"
-          - "https://www.googleapis.com/auth/logging.write"
-          - "https://www.googleapis.com/auth/monitoring"
-          - "https://www.googleapis.com/auth/servicecontrol"
-          - "https://www.googleapis.com/auth/service.management.readonly"
-          - "https://www.googleapis.com/auth/trace.append"
-      autoscaling:
-        enabled: "yes"
-        min_node_count: "1"
-        max_node_count: "{{ initial_node_count }}"
-      management:
-        auto_repair: "yes"
-        auto_upgrade: "yes"
-      auth_kind: "{{ gcp_auth_kind }}"
-      service_account_file: "{{ gcp_service_account_file }}"
-      state: "{{ cluster_state }}"
   
   # - name: "Connect to cluster (update kubeconfig)"
   #   shell: "gcloud container clusters get-credentials {{ cluster.name }} --zone {{ gcp_zone }} --project {{ gcp_project }}"
   #   when: cluster_state == "present"
   
   - name: "Connect to cluster (update kubeconfig)"
-    shell: "gcloud container clusters get-credentials {{ cluster.name }} --zone {{ gcp_zone }} --project {{ gcp_project }}"
+    shell: "gcloud container clusters get-credentials {{ cluster_name }} --zone {{ gcp_zone }} --project {{ gcp_project }}"
     when: cluster_state == "present"
 
   - name: "Create Namespace"
@@ -197,6 +154,9 @@
                 - name: google-cloud-key
                   secret:
                     secretName: gcp-service-key
+                - name: wandbkey
+                  secret:
+                    secretName: wandbkey
               containers:
               - image: gcr.io/{{ gcp_project }}/flavor-fusion-api-service:{{ tag.stdout}}
                 imagePullPolicy: IfNotPresent
@@ -209,14 +169,16 @@
                     mountPath: /persistent
                     #readOnly: false
                   - name: google-cloud-key
-                    mountPath: /secrets
+                    mountPath: /secrets/gcp
+                  - name: wandbkey
+                    mountPath: /secrets/wandb
                 env:
                   - name: GOOGLE_APPLICATION_CREDENTIALS
-                    value: /secrets/gcp-service.json
+                    value: /secrets/gcp/gcp-service.json
                   - name: GCS_BUCKET_NAME
                     value: reviews-data
                   - name: WANDB_KEY
-                    value: /secrets/wandbkey.txt
+                    value: /secrets/wandb/wandbkey.txt
     when: cluster_state == "present"
 
   - name: "Create Service for Frontend"
