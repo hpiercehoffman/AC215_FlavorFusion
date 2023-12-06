@@ -7,7 +7,9 @@ AC215: FlavorFusion
 ## Blog Post ##
 - [Add Link]
 
-![image](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/src/frontend-simple/logo.png)
+<p align="center">
+  <img src="https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/src/frontend-simple/logo.png" width=50% height=50% />
+</p>
 
 Project Organization
 ------------
