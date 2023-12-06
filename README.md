@@ -112,12 +112,27 @@ For a full list of external references used in this project, please refer to our
 - For information on model training, see our [Milestone 3 report](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone3.md). Model training takes place in the **train** Docker container.
 - For information on model optimization and deployment, see our [Milestone 4 report](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone4.md). The scripts in the **inference_cloud_functions** directory are used for model deployment.
 - For information on front-end architecture and API development, see our [Milestone 5 report](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone5.md). The **frontend_simple** container is responsible for running the frontend, while the **api-service** container handles backend API calls.
-- This page (Milestone 6) deals with automation, scaling, and CI/CD.
+- This page (Milestone 6) deals with automation, scaling, and CI/CD. The **deployment** container handles automation and scaling.
 
 ### Completed App ###
 
 ### Deployment: Ansible ###
+In this milestone, we used [Ansible](https://www.ansible.com/) to automate the process of deploying our app on a GCP VM. Below, we describe how to run each of our Ansible playbooks to complete the deployment process. For manual deployment steps, see our [Milestone 5 Setup Notes](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone5.md#setup-notes). 
+- **Run the deployment container:** To run the deployment container with Ansible and Kubectl installed, enter the following commands:  
+`cd src/deployment`    
+`sh docker-shell.sh`    
+If running this container for the first time, see the [Setup Notes](https://github.com/hpiercehoffman/AC215_FlavorFusion/tree/main#setup-notes) section for additional setup instructions.
+- **Build and push Docker images:** We start by building the `frontend-simple` and `api-service` Docker images and pushing them to Google Container Registry. We tag both images with the current timestamp so they can be linked together. To run these steps, type the following command inside the deployment container:     
+`ansible-playbook deploy-docker-images.yml -i inventory.yml`    
+Note that running this command for the first time may take ~30 minutes, since the `api-service` container is fairly large and takes a long time to push to GCR.
+- **Set up a GCP VM:** We create a GCP VM with a mounted persistent disk for storage. We allow HTTP traffic on port 80, and HTTPS traffic on port 443. To run this step, type the following command:    
+`ansible-playbook deploy-provision-instance.yml -i inventory.yml`
+- **Set up containers on the VM:** We copy our secrets files (GCP credentials and WandB key) to the VM so they can be mounted to our Docker containers. We pull the containers from GCR and run them on port 3000 (frontend) and port 9000 (API service). To run these steps, type the following command:         
+`ansible-playbook deploy-setup-containers.yml -i inventory.yml`
+- **Set up Nginx:** We use Nginx as a reverse proxy to handle incoming HTTP traffic on port 80. Nginx also passes traffic between the frontend and the API service. To run this step, type the following command:    
+`ansible-playbook deploy-setup-webserver.yml -i inventory.yml`
 
+At this point, three containers should be running on the GCP VM: `frontend`, `api-service`, and `nginx`. If you want to verify that all containers are running, you can SSH to the VM from the GCP console and type: `sudo docker container ls`. You can access the app in your browser using the external IP of the VM: `http://<VM External IP>/
 
 ### Scaling: Kubernetes ###
 
@@ -147,6 +162,7 @@ This directory contains information on models, datasets, and other external refe
 # Setup Notes #
 
 ### Additional Ansible and Kubernetes Setup ###
+(Add info about setting up secrets, ssh auth, and inventory.yml)
 
 
 # References #
