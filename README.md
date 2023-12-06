@@ -132,7 +132,7 @@ Note that running this command for the first time may take ~30 minutes, since th
 - **Set up Nginx:** We use Nginx as a reverse proxy to handle incoming HTTP traffic on port 80. Nginx also passes traffic between the frontend and the API service. To run this step, type the following command:    
 `ansible-playbook deploy-setup-webserver.yml -i inventory.yml`
 
-At this point, three containers should be running on the GCP VM: `frontend`, `api-service`, and `nginx`. If you want to verify that all containers are running, you can SSH to the VM from the GCP console and type: `sudo docker container ls`. You can access the app in your browser using the external IP of the VM: `http://<VM External IP>/
+At this point, three containers should be running on the GCP VM: `frontend`, `api-service`, and `nginx`. If you want to verify that all containers are running, you can SSH to the VM from the GCP console and type: `sudo docker container ls`. You can access the app in your browser using the external IP of the VM: `http://<VM External IP>/`
 
 ### Scaling: Kubernetes ###
 
