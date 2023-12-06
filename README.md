@@ -108,11 +108,22 @@ In this project, we aim to build an app that captures cultural differences in Go
 For a full list of external references used in this project, please refer to our [reference document](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/references/references.md).
 
 ## Deliverables Breakdown ##
-- For information on data preprocessing, see our [Milestone 2 report](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone2.md). Data preprocessing takes place in the **preprocess_google** and **preprocess_lsars** Docker containers.
-- For information on model training, see our [Milestone 3 report](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone3.md). Model training takes place in the **train** Docker container.
-- For information on model optimization and deployment, see our [Milestone 4 report](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone4.md). The scripts in the **inference_cloud_functions** directory are used for model deployment.
-- For information on front-end architecture and API development, see our [Milestone 5 report](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone5.md). The **frontend_simple** container is responsible for running the frontend, while the **api-service** container handles backend API calls.
-- This page (Milestone 6) deals with automation, scaling, and CI/CD. The **deployment** container handles automation and scaling.
+For information on each of the following topics, see the relevant linked milestone.
+- [Milestone 2](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone2.md):
+    - Data preprocessing, Label Studio, and DVC
+    - `preprocess_google` and `preprocess_lsars` Docker containers
+- [Milestone 3](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone3.md):
+    - Model training, VM setup, and experiment tracking
+    - `train` Docker container
+- [Milestone 4](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone4.md):
+    - Model optimization and model deployment
+    - Scripts in the `inference_cloud_functions` directory
+- [Milestone 5](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone5.md):
+    - Frontend interface, API development, and solution architecture
+    - `frontend_simple` and `api-service` containers
+- Milestone 6 (this page):
+    - Automation, scaling, and CI/CD
+    - `deployment` container
 
 ### Completed App ###
 
@@ -142,21 +153,7 @@ At this point, three containers should be running on the GCP VM: `frontend`, `ap
 
 
 
-### notebooks ###    
-This directory contains code which doesn't belong to a specific container:
-- `pruning_evaluation.ipynb`: Code to evaluate and compute benchmark statistics for a base versus pruned model.
-- [Add notebook for Ethnicolr classification]
 
-### reports ###
-This directory contains our reports from past milestones:
-- [Milestone 2](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone2.md): Data preprocessing, Label Studio, and DVC.
-- [Milestone 3](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone3.md): Model training, VM setup, and experiment tracking.
-- [Milestone 4](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone4.md): Model optimization and model deployment.
-- [Milestone 5](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone5.md)
-Frontend interface, API development, and solution architecture.
-
-### references ###  
-This directory contains information on models, datasets, and other external references used in this project. References are detailed in [references.md](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/references/references.md).
 
 --------
 # Setup Notes #
@@ -164,6 +161,10 @@ This directory contains information on models, datasets, and other external refe
 ### Additional Ansible and Kubernetes Setup ###
 (Add info about setting up secrets, ssh auth, and inventory.yml)
 
+### Notebooks ###    
+This directory contains code which doesn't belong to a specific container:
+- `pruning_evaluation.ipynb`: Code to evaluate and compute benchmark statistics for a base versus pruned model.
+- [Add notebook for Ethnicolr classification]
 
 # References #
 
