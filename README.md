@@ -5,7 +5,7 @@ AC215: FlavorFusion
 - [Add Link]
 
 ## Blog Post ##
-- [Add Link]
+- [Link](https://medium.com/@varappu.ram/fb884bf473f6)
 
 <p align="center">
   <img src="https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/src/frontend-simple/logo.png" width=50% height=50% />
@@ -129,6 +129,17 @@ For information on each of the following topics, see the relevant linked milesto
     - `deployment` container
 
 ### Completed App ###
+
+FlavorFusion was born from a simple question. As an intercultural couple, we've often found that we have wildly different dining experiences at the same restaurant. A typical case is spice level-- Varun (South Indian) thinks the food is incredibly bland, while Hannah (American) thinks it's almost too spicy to eat. It's hard to tell from restaurant reviews whether a given restaurant will be "American spicy" or "South Indian spicy". However, we found that we tend to look for reviews by people from our own culture to give clues to what our own dining experience will be like. After all, food preferences are inherently linked to the cultural food someone grew up eating. Hence the question: **What do people of ______ culture think of ______ restaurant?**
+
+Our app aims to help users from diverse cultural backgrounds find the perfect restaurant. By inferring cultural background from a reviewer's first and last name, we create groups of reviewers* for each restaurant in the [Google Local](https://datarepo.eng.ucsd.edu/mcauley_group/gdrive/googlelocal/) reviews dataset. We then use the [PRIMERA](https://arxiv.org/abs/2110.08499) multi-document summarization model to generate a different review summary for each cultural group. 
+
+*It's important to note that our cultural classification by name is highly inexact, and only based on guesses made by a [python package](https://pypi.org/project/ethnicolr/)! If we were to roll out this app in production, we would add much more detailed cultural classification, and clearly show the level of uncertainty inherent in guessing someone's cultural background from metadata.
+
+We share a few screenshots of our app in action below:
+
+
+
 
 ### Deployment: Ansible ###
 In this milestone, we used [Ansible](https://www.ansible.com/) to automate the process of deploying our app on a GCP VM. Below, we describe how to run each of our Ansible playbooks to complete the deployment process. For manual deployment steps, see our [Milestone 5 Setup Notes](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone5.md#setup-notes). 
