@@ -16,6 +16,7 @@ Project Organization
       ├── LICENSE
       ├── README.md
       ├── notebooks
+      │   ├── run_ethnicolr.ipynb
       |   └── pruning_evaluation.ipynb
       ├── references
       │   └── references.md
@@ -148,7 +149,34 @@ Note that running this command for the first time may take ~30 minutes, since th
 At this point, three containers should be running on the GCP VM: `frontend`, `api-service`, and `nginx`. If you want to verify that all containers are running, you can SSH to the VM from the GCP console and type: `sudo docker container ls`. You can access the app in your browser using the external IP of the VM: `http://<VM External IP>/`
 
 ### Scaling: Kubernetes ###
+We deploy our app as a Kubernetes cluster to effectively handle concurrent requests from multiple clients. To create and launch a Kubernetes cluster, run the following Ansible command within the `deployment` Docker container:     
+`ansible-playbook deploy-k8s-cluster.yml -i inventory.yml --extra-vars cluster_state=present`
 
+This Ansible playbook executes the following steps:
+- Create a [Kubernetes](https://kubernetes.io/) cluster which autoscales to have either 1 or 2 nodes. Each node is a `n2d-standard-2` type VM with 30 GB of disk space.
+- Create a namespace for the cluster, and update the local Kubernetes configuration to recognize the newly created cluster.
+- Set up a Nginx ingress to manage external access to cluster services. 
+- Create a persistent volume which can be used by the cluster pods for extra storage.
+- Create Kubernetes secrets to store our GCP credentials (used to access data in buckets) and our WandB key (used to download our trained model).
+- Deploy the frontend and API containers as services within each node of the cluster. Grant the API service access to the persistent volume as well as the two secrets.
+- Wait for the Nginx ingress service to come up. Output the Nginx IP address to the console so it can be used to access the cluster.
+
+This playbook takes 5-10 minutes to run, since cluster creation takes a long time. Once the playbook is finished running, the deployed app can be accessed at `http://<Nginx Ingress IP>.sslip.io`. 
+
+We also include a second Ansible playbook to run all of the above steps except creating the cluster. This playbook assumes that a cluster named `flavor-fusion-cluster` is already present. To run this playbook, type the following command in the `deployment` Docker container:    
+`ansible-playbook deploy-cluster-short.yml -i inventory.yml --extra-vars cluster_state=present`
+
+Below, we show some screenshots of our app running on Kubernetes.
+
+**Kubernetes cluster with node pool**
+<img src="https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/images/kubernetes_cluster_and_nodepool.png" width=75% height=75% />
+
+**Kubernetes pods and processes running**     
+<img src="https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/images/kubectl_everything_running.png" width=50% height=50% />    
+To produce the above output, run the command `kubectl get all --all-namespaces` in the `deployment` Docker container.    
+
+**Accessing the app from the Nginx ingress IP address**     
+<img src="https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/images/kubernetes_wandb_working.png" width=75% height=75% />      
 
 ### CI/CD: Github Actions ###
 
@@ -166,7 +194,7 @@ At this point, three containers should be running on the GCP VM: `frontend`, `ap
 ### Notebooks ###    
 This directory contains code which doesn't belong to a specific container:
 - `pruning_evaluation.ipynb`: Code to evaluate and compute benchmark statistics for a base versus pruned model.
-- [Add notebook for Ethnicolr classification]
+- `run_ethnicolor.ipynb`: Code to predict reviewers' ethnic background using the [Ethnicolr](https://ethnicolr.readthedocs.io/) python package.
 
 # References #
 
