@@ -138,8 +138,15 @@ Our app aims to help users from diverse cultural backgrounds find the perfect re
 
 We share a few screenshots of our app in action below:
 
+**Users can select a Massachusetts restaurant from a dropdown menu.**   
+<img src="https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/images/demo_app_welcome.png" width=75% height=75% />         
 
+**Users can see review summaries from customer groups of different cultural backgrounds.**    
+<img src="https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/images/demo_multi_results_cafe_landwer.png" width=75% height=75% />   
 
+**Sometimes there isn't enough data from one or more customer groups.**    
+(**Also, sometimes the review summary indicates that this isn't a very good restaurant.**)       
+<img src="https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/images/demo_results_jpkitchen_bad_review.png" width=75% height=75% />   
 
 ### Deployment: Ansible ###
 In this milestone, we used [Ansible](https://www.ansible.com/) to automate the process of deploying our app on a GCP VM. Below, we describe how to run each of our Ansible playbooks to complete the deployment process. For manual deployment steps, see our [Milestone 5 Setup Notes](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone5.md#setup-notes). 
