@@ -1,11 +1,22 @@
 AC215: FlavorFusion
 ==============================
 
+## Presentation Video ##
+- [Add Link]
+
+## Blog Post ##
+- [Link](https://medium.com/@varappu.ram/fb884bf473f6)
+
+<p align="center">
+  <img src="https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/src/frontend-simple/logo.png" width=50% height=50% />
+</p>
+
 Project Organization
 ------------
       ├── LICENSE
       ├── README.md
       ├── notebooks
+      │   ├── run_ethnicolr.ipynb
       |   └── pruning_evaluation.ipynb
       ├── references
       │   └── references.md
@@ -99,108 +110,102 @@ In this project, we aim to build an app that captures cultural differences in Go
 
 For a full list of external references used in this project, please refer to our [reference document](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/references/references.md).
 
-## Milestone 5 Deliverables ##
+## Deliverables Breakdown ##
+For information on each of the following topics, see the relevant linked milestone.
+- [Milestone 2](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone2.md):
+    - Data preprocessing, Label Studio, and DVC
+    - `preprocess_google` and `preprocess_lsars` Docker containers
+- [Milestone 3](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone3.md):
+    - Model training, VM setup, and experiment tracking
+    - `train` Docker container
+- [Milestone 4](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone4.md):
+    - Model optimization and model deployment
+    - Scripts in the `inference_cloud_functions` directory
+- [Milestone 5](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone5.md):
+    - Frontend interface, API development, and solution architecture
+    - `frontend_simple` and `api-service` containers
+- Milestone 6 (this page):
+    - Automation, scaling, and CI/CD
+    - `deployment` container
 
-This milestone deals with front-end architecture and API development.
-- For information on data preprocessing, see our [Milestone 2 report](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/reports/milestone2.md). Data preprocessing takes place in the **preprocess_google** and **preprocess_lsars** Docker containers.
-- For information on model training, see our [Milestone 3 report](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/reports/milestone3.md). Model training takes place in the **train** Docker container.
-- For information on model optimization and deployment, see our [Milestone 4 report](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/reports/milestone4.md). The scripts in the **inference_cloud_functions** directory are used for model deployment.
+### Completed App ###
 
-### Application Design ###
+FlavorFusion was born from a simple question. As an intercultural couple, we've often found that we have wildly different dining experiences at the same restaurant. A typical case is spice level-- Varun (South Indian) thinks the food is incredibly bland, while Hannah (American) thinks it's almost too spicy to eat. It's hard to tell from restaurant reviews whether a given restaurant will be "American spicy" or "South Indian spicy". However, we found that we tend to look for reviews by people from our own culture to give clues to what our own dining experience will be like. After all, food preferences are inherently linked to the cultural food someone grew up eating. Hence the question: **What do people of ______ culture think of ______ restaurant?**
 
-At this point in our development process, we created **design documents** showing the high-level architecture of our app. We created a **solution architecture** which shows the high-level strategy of our entire project, as well as a **technical architecture** which provides implementation details about how the different components of the project work together. We will discuss both design documents below. 
+Our app aims to help users from diverse cultural backgrounds find the perfect restaurant. By inferring cultural background from a reviewer's first and last name, we create groups of reviewers* for each restaurant in the [Google Local](https://datarepo.eng.ucsd.edu/mcauley_group/gdrive/googlelocal/) reviews dataset. We then use the [PRIMERA](https://arxiv.org/abs/2110.08499) multi-document summarization model to generate a different review summary for each cultural group. 
 
-Note that these design documents represent a *final* implementation, meaning that some of the work is not yet completed in this milestone. We note the pending work below each image.
+*It's important to note that our cultural classification by name is highly inexact, and only based on guesses made by a [python package](https://pypi.org/project/ethnicolr/)! If we were to roll out this app in production, we would add much more detailed cultural classification, and clearly show the level of uncertainty inherent in guessing someone's cultural background from metadata.
 
-**Solution Architecture**
+We share a few screenshots of our app in action below:
 
-![image](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/images/solution_architecture.png)
 
-Our solution architecture shows the flow of **processes** (tasks performed by developers and users), **execution** (code running in different parts of the project pipeline), and **state** (stored objects and artifacts). In this view of the project, we abstract away technical details.
 
-*Pending work:* Currently, we have not yet implemented HTTPS communication between the API service and the deployment stage of the ML pipeline. Instead, the API service downloads a trained model from WandB. In our final implementation, the API service will communicate with a deployed model (e.g. a cloud function). 
 
-**Technical Architecture**
+### Deployment: Ansible ###
+In this milestone, we used [Ansible](https://www.ansible.com/) to automate the process of deploying our app on a GCP VM. Below, we describe how to run each of our Ansible playbooks to complete the deployment process. For manual deployment steps, see our [Milestone 5 Setup Notes](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/reports/milestone5.md#setup-notes). 
+- **Run the deployment container:** To run the deployment container with Ansible and Kubectl installed, enter the following commands:  
+`cd src/deployment`    
+`sh docker-shell.sh`    
+If running this container for the first time, see the [Setup Notes](https://github.com/hpiercehoffman/AC215_FlavorFusion/tree/main#setup-notes) section for additional setup instructions.
+- **Build and push Docker images:** We start by building the `frontend-simple` and `api-service` Docker images and pushing them to Google Container Registry. We tag both images with the current timestamp so they can be linked together. To run these steps, type the following command inside the deployment container:     
+`ansible-playbook deploy-docker-images.yml -i inventory.yml`    
+Note that running this command for the first time may take ~30 minutes, since the `api-service` container is fairly large and takes a long time to push to GCR.
+- **Set up a GCP VM:** We create a GCP VM with a mounted persistent disk for storage. We allow HTTP traffic on port 80, and HTTPS traffic on port 443. To run this step, type the following command:    
+`ansible-playbook deploy-provision-instance.yml -i inventory.yml`
+- **Set up containers on the VM:** We copy our secrets files (GCP credentials and WandB key) to the VM so they can be mounted to our Docker containers. We pull the containers from GCR and run them on port 3000 (frontend) and port 9000 (API service). To run these steps, type the following command:         
+`ansible-playbook deploy-setup-containers.yml -i inventory.yml`
+- **Set up Nginx:** We use Nginx as a reverse proxy to handle incoming HTTP traffic on port 80. Nginx also passes traffic between the frontend and the API service. To run this step, type the following command:    
+`ansible-playbook deploy-setup-webserver.yml -i inventory.yml`
 
-![image](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/images/technical_architecture.png)
+At this point, three containers should be running on the GCP VM: `frontend`, `api-service`, and `nginx`. If you want to verify that all containers are running, you can SSH to the VM from the GCP console and type: `sudo docker container ls`. You can access the app in your browser using the external IP of the VM: `http://<VM External IP>/`
 
-Our technical architecture provides a detailed view of the project structure, including components responsible for different actions and communication between these components.
+### Scaling: Kubernetes ###
+We deploy our app as a Kubernetes cluster to effectively handle concurrent requests from multiple clients. To create and launch a Kubernetes cluster, run the following Ansible command within the `deployment` Docker container:     
+`ansible-playbook deploy-k8s-cluster.yml -i inventory.yml --extra-vars cluster_state=present`
 
-*Pending work:* Currently, we have not yet implemented a Nginx container to handle communication between the frontend and the API service. Instead, the frontend communicates directly with the API service via a local port. In our final implementation, we will run a Nginx container on our VM or within a Kubernetes cluster, so that Nginx can act as a reverse proxy to forward requests from the frontend container to the API container.
+This Ansible playbook executes the following steps:
+- Create a [Kubernetes](https://kubernetes.io/) cluster which autoscales to have either 1 or 2 nodes. Each node is a `n2d-standard-2` type VM with 30 GB of disk space.
+- Create a namespace for the cluster, and update the local Kubernetes configuration to recognize the newly created cluster.
+- Set up a Nginx ingress to manage external access to cluster services. 
+- Create a persistent volume which can be used by the cluster pods for extra storage.
+- Create Kubernetes secrets to store our GCP credentials (used to access data in buckets) and our WandB key (used to download our trained model).
+- Deploy the frontend and API containers as services within each node of the cluster. Grant the API service access to the persistent volume as well as the two secrets.
+- Wait for the Nginx ingress service to come up. Output the Nginx IP address to the console so it can be used to access the cluster.
 
-### Frontend App ###
+This playbook takes 5-10 minutes to run, since cluster creation takes a long time. Once the playbook is finished running, the deployed app can be accessed at `http://<Nginx Ingress IP>.sslip.io`. 
 
-We implemented a prototype frontend app using HTML and Javascript. The app shows a simple front page where the user can select a restaurant from a dropdown menu. The dropdown menu is populated based on data downloaded from our GCS bucket. The user can click the "Submit" button to generate a summary of 5 random reviews from the selected restaurant. In the final implementation, we will generate multiple summaries for groups of reviews which are stratified by estimated cultural background. 
+We also include a second Ansible playbook to run all of the above steps except creating the cluster. This playbook assumes that a cluster named `flavor-fusion-cluster` is already present. To run this playbook, type the following command in the `deployment` Docker container:    
+`ansible-playbook deploy-cluster-short.yml -i inventory.yml --extra-vars cluster_state=present`
 
-We also include a Swagger API testing interface in the prototype front-end, so we can easily test our APIs. We'll discuss each API in more detail in the next section.
+Below, we show some screenshots of our app running on Kubernetes.
 
-The screenshot below shows our prototype front-end. For full details of how to run the frontend and backend, see the [Setup Notes](https://github.com/hpiercehoffman/AC215_FlavorFusion/tree/milestone5#setup-notes) section.
+**Kubernetes cluster with node pool**
+<img src="https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/images/kubernetes_cluster_and_nodepool.png" width=75% height=75% />
 
-![image](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/images/frontend_with_swagger.png)
+**Kubernetes pods and processes running**     
+<img src="https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/images/kubectl_everything_running.png" width=50% height=50% />    
+To produce the above output, run the command `kubectl get all --all-namespaces` in the `deployment` Docker container.    
 
-### Backend API ###
+**Accessing the app from the Nginx ingress IP address**     
+<img src="https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/images/kubernetes_wandb_working.png" width=75% height=75% />      
 
-We used FastAPI to create backend RESTful APIs which handle communication with the frontend. We implemented the following APIs:
-- `/`: Default API call. GET method which returns a welcome message.
-- `/populate`: GET method which downloads a subset of our data from a GCS bucket and extracts a list of restaurant names. Restaurant names are then used to populate a dropdown menu in the frontend.
-- `/predict`: POST method which runs model inference for a selected restaurant, generating a summary of reviews from the selected restaurant. Future implementations of this API will include options to summarize a specific group of reviews based on estimated cultural background of reviewers.
+### CI/CD: Github Actions ###
 
-In addition to testing our APIs by interacting with the frontend, we also used Swagger's [API testing kit](https://swagger.io/solutions/api-testing/) to verify that all APIs are working correctly. The screenshots below show the results of testing each of our three APIs with Swagger. All APIs are working as expected.
 
-**Testing the "/" API**
 
-![image](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/images/swagger_default_api.png)
 
-**Testing the "/populate" API**
 
-![image](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/images/swagger_populate_api.png)
-
-**Testing the "/predict" API**
-
-![image](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/images/swagger_get_api.png)
-
-### notebooks ###    
-This directory contains code which doesn't belong to a specific container:
-- `pruning_evaluation.ipynb`: Code to evaluate and compute benchmark statistics for a base versus pruned model. 
-
-### reports ###
-This directory contains our reports from past milestones:
-- [Milestone 2](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/reports/milestone2.md): Data preprocessing, Label Studio, and DVC.
-- [Milestone 3](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone3/reports/milestone3.md): Model training, VM setup, and experiment tracking.
-- [Milestone 4](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/reports/milestone4.md): Model optimization and model deployment.
-
-### references ###  
-This directory contains information on models, datasets, and other external references used in this project. References are detailed in [references.md](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/milestone5/references/references.md).
 
 --------
 # Setup Notes #
 
-### Running Frontend and API Service ###
+### Additional Ansible and Kubernetes Setup ###
+(Add info about setting up secrets, ssh auth, and inventory.yml)
 
-For our prototype implementation in this milestone, we ran the backend API service on a GCP VM and the frontend server on a local machine. In our final implementation, we will use Nginx to handle communication between the frontend and backend. 
-
-Below, we describe the steps to reproduce our development configuration.
-
-1. Create a GCP VM instance with a Nvidia L4 GPU. Install Nvidia drivers and Docker. HTTP traffic should be enabled, although we use SSH in this prototype implementation.
-2. Connect to the VM, opening an SSH tunnel from port 9000 of the VM to port 9000 on your local machine:  
-   `gcloud compute ssh primera-gpu-200 -- -L 9000:localhost:9000`  
-3. Clone our repository on the VM and build the `test-api` Docker image:  
-   `git clone https://github.com/hpiercehoffman/AC215_FlavorFusion.git`
-4. Set up secrets files at the same directory level as the project repository (not inside the repo). We added a `google_secrets.json` file with the credentials for our service account (necessary to download files from our GCS bucket), and a `wandb_key.txt` file with our WandB API key (necessary to download our trained model from WandB).
-5. It may be necessary to change permissions of the directory where the Docker container will download files. You can change permissions as follows, so the Docker container will have permission to download the model and data:  
-   `sudo chmod 777 AC215_FlavorFusion/src/api-service/`  
-7. Run the dockerfile for our API server:  
-   `cd AC215_FlavorFusion/src/api-service/`  
-   `sh docker-shell.sh`  
-8. This should build and run a Docker container called `test-api`. Once the Docker container is running, start the Uvicorn server:  
-   `uvicorn_server_production`  
-9. The Uvicorn server is now running on port 9000 of the Docker container, which is connected to port 9000 on the GCP VM. Port 9000 on the VM is also connected to port 9000 on your local machine via SSH connection.
-10. Now we can run the frontend on local. Ensure that our repo is cloned on your local machine. Run the dockerfile for the frontend server:  
-   `cd AC215_FlavorFusion/src/frontend-simple`  
-   `sh docker-shell.sh`  
-11. This Docker will run with a connection between port 3000 in the Docker container and port 3000 on your local machine. Therefore, you should run the frontend server on port 3000:  
-    `http-server -p 3000`  
-12. Once the HTTP server is running, you should be able to visit `localhost:3000` in your browser and see the FlavorFusion homepage. API calls made from this frontend are routed via Axios to port 9000 on your local machine. Since port 9000 on your local machine is connected to the VM and the Docker, you'll be able to send and receive information from the Uvicorn server.
+### Notebooks ###    
+This directory contains code which doesn't belong to a specific container:
+- `pruning_evaluation.ipynb`: Code to evaluate and compute benchmark statistics for a base versus pruned model.
+- `run_ethnicolor.ipynb`: Code to predict reviewers' ethnic background using the [Ethnicolr](https://ethnicolr.readthedocs.io/) python package.
 
 # References #
 
