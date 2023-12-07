@@ -200,7 +200,13 @@ For more information on secrets management with Kubernetes, see [Setup Notes](ht
 
 ### CI/CD: Github Actions ###
 
+We use a [Github Actions workflow](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/.github/ci-cd.yml) to perform an automated update to our Kubernetes cluster if we make changes to our code. The `/run-deploy-app` command in a commit triggers the following actions:
+- Authenticate to GCP
+- Rebuild the `deployment` container
+- Rebuild the Docker images for frontend and API service, and push them to GCR
+- Update the running Kubernetes cluster with new versions of containers (assumes the cluster is already running)
 
+This CI/CD automation allows us to immediately update our deployed app if something changes-- such as updating the code to reflect a new model version.
 
 --------
 # Setup Notes #
