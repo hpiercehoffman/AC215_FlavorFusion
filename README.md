@@ -2,7 +2,7 @@ AC215: FlavorFusion
 ==============================
 
 ## Presentation Video ##
-- [Add Link]
+- [Link](https://youtu.be/ZdaxhP82LCs)
 
 ## Blog Post ##
 - [Link](https://medium.com/@varappu.ram/fb884bf473f6)
