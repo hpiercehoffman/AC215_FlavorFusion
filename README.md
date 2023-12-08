@@ -2,7 +2,7 @@ AC215: FlavorFusion
 ==============================
 
 ## Presentation Video ##
-- [Add Link]
+- [Link](https://youtu.be/ZdaxhP82LCs)
 
 ## Blog Post ##
 - [Link](https://medium.com/@varappu.ram/fb884bf473f6)
@@ -194,20 +194,40 @@ Below, we show some screenshots of our app running on Kubernetes.
 To produce the above output, run the command `kubectl get all --all-namespaces` in the `deployment` Docker container.    
 
 **Accessing the app from the Nginx ingress IP address**     
-<img src="https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/images/kubernetes_wandb_working.png" width=75% height=75% />      
+<img src="https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/images/kubernetes_wandb_working.png" width=75% height=75% />        
+
+For more information on secrets management with Kubernetes, see [Setup Notes](https://github.com/hpiercehoffman/AC215_FlavorFusion/tree/main#setup-notes).
 
 ### CI/CD: Github Actions ###
 
+We use a [Github Actions workflow](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/.github/ci-cd.yml) to perform an automated update to our Kubernetes cluster if we make changes to our code. The `/run-deploy-app` command in a commit triggers the following actions:
+- Authenticate to GCP
+- Rebuild the `deployment` container
+- Rebuild the Docker images for frontend and API service, and push them to GCR
+- Update the running Kubernetes cluster with new versions of containers (assumes the cluster is already running)
 
-
-
-
+This CI/CD automation allows us to immediately update our deployed app if something changes-- such as updating the code to reflect a new model version.
 
 --------
 # Setup Notes #
 
-### Additional Ansible and Kubernetes Setup ###
-(Add info about setting up secrets, ssh auth, and inventory.yml)
+### Deployment First Time Setup ###
+
+The first time you run the `deployment` container, some additional setup may be required to enable SSH login to GCP. Within the container, run the following commands:   
+`gcloud compute project-info add-metadata --project flavor-fusion-399619 --metadata enable-oslogin=TRUE`   
+`cd ../secrets`   
+`ssh-keygen -f ssh-key-deployment`   
+`cd ../app`   
+`gcloud compute os-login ssh-keys add --key-file=/secrets/ssh-key-deployment.pub`   
+
+### Kubernetes Secrets Management ###
+
+For our Kubernetes scaling solution, we store our GCP credentials and our WandB API key in [Kubernetes secrets](https://kubernetes.io/docs/concepts/configuration/secret/). We provide some hints on properly managing these secrets:
+- The name of a Kubernetes secret cannot contain underscores. Therefore, we use the name `wandbkey` for our WandB secret.
+- The filename where the secret is stored is also not allowed to contain underscores. Therefore, we store our WandB secret in `wandbkey.txt`.
+- When creating the `api-service` pod, Kubernetes mounts volumes with the same path on top of each other. Therefore, we need to take care to mount our two secrets to different paths: `/secrets/gcp/` and `/secrets/wandb/`.     
+
+See our [Kubernetes deployment playbook](https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/src/deployment/deploy-k8s-cluster.yml) for full details.
 
 ### Notebooks ###    
 This directory contains code which doesn't belong to a specific container:
