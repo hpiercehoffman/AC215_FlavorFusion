@@ -206,7 +206,9 @@ We use a [Github Actions workflow](https://github.com/hpiercehoffman/AC215_Flavo
 - Rebuild the Docker images for frontend and API service, and push them to GCR
 - Update the running Kubernetes cluster with new versions of containers (assumes the cluster is already running)
 
-This CI/CD automation allows us to immediately update our deployed app if something changes-- such as updating the code to reflect a new model version.
+This CI/CD automation allows us to immediately update our deployed app if something changes-- such as updating the code to reflect a new model version. Below, we show a screenshot of a successful Github Action. After this action completed, we verified that the app was still running on Kubernetes.
+
+<img src="https://github.com/hpiercehoffman/AC215_FlavorFusion/blob/main/images/ci_cd_success.png" width=50% height=50% />
 
 --------
 # Setup Notes #
