@@ -35,7 +35,7 @@ services:
         environment:
             LABEL_STUDIO_DISABLE_SIGNUP_WITHOUT_LINK: "true"
             LABEL_STUDIO_USERNAME: "vullanat@hms.harvard.edu" 
-            LABEL_STUDIO_PASSWORD: "Ammu051304!" 
+            LABEL_STUDIO_PASSWORD: "1234!" 
             GOOGLE_APPLICATION_CREDENTIALS: /secrets/flavor-fusion-service.json
             GCP_PROJECT: "flavor-fusion"
             GCP_ZONE: "us-central1-a"
